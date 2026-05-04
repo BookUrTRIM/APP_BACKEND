@@ -1,0 +1,29 @@
+tags: [payments]
+summary: Récupérer un paiement
+description: Retourne le détail d'un paiement par son identifiant.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: payment_id
+    type: integer
+    required: true
+    description: Identifiant du paiement
+responses:
+  200:
+    description: Détail du paiement
+    schema:
+      $ref: '#/definitions/PaymentResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Paiement introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

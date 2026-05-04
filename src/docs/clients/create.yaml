@@ -1,0 +1,36 @@
+tags: [clients]
+summary: Créer un profil client
+description: |
+  Crée le profil client associé au compte connecté.
+  Un seul profil client est autorisé par compte.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ClientCreateDTO'
+responses:
+  201:
+    description: Profil client créé
+    schema:
+      $ref: '#/definitions/ClientResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  409:
+    description: Un profil client existe déjà pour ce compte
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

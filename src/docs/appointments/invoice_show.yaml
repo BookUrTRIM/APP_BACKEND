@@ -1,0 +1,29 @@
+tags: [appointments]
+summary: Récupérer la facture d'un rendez-vous
+description: Retourne la facture associée à un rendez-vous.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  200:
+    description: Facture du rendez-vous
+    schema:
+      $ref: '#/definitions/InvoiceResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Facture ou rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

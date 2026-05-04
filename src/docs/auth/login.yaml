@@ -1,0 +1,34 @@
+tags: [auth]
+summary: Se connecter
+description: |
+  Authentifie un utilisateur et retourne un token JWT Bearer.
+  Inclure ce token dans les requêtes suivantes : `Authorization: Bearer <token>`.
+consumes: [application/json]
+produces: [application/json]
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/LoginDTO'
+responses:
+  200:
+    description: Connexion réussie
+    schema:
+      $ref: '#/definitions/TokenResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Email ou mot de passe incorrect
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Compte désactivé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

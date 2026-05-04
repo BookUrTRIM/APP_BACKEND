@@ -1,0 +1,40 @@
+tags: [appointments]
+summary: Générer la facture d'un rendez-vous
+description: |
+  Génère la facture pour un rendez-vous terminé.
+  Le rendez-vous doit être au statut `completed`.
+  Une seule facture est autorisée par rendez-vous.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  201:
+    description: Facture générée
+    schema:
+      $ref: '#/definitions/InvoiceResponse'
+  400:
+    description: Le rendez-vous n'est pas terminé
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  409:
+    description: Une facture existe déjà pour ce rendez-vous
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

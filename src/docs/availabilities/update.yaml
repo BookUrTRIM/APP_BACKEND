@@ -1,0 +1,45 @@
+tags: [availabilities]
+summary: Modifier un créneau de disponibilité
+description: |
+  Met à jour un créneau de disponibilité existant.
+  Seul le prestataire propriétaire peut modifier son créneau.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: availability_id
+    type: integer
+    required: true
+    description: Identifiant du créneau
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/AvailabilityUpdateDTO'
+responses:
+  200:
+    description: Créneau mis à jour
+    schema:
+      $ref: '#/definitions/AvailabilityResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Créneau introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

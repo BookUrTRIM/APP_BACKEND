@@ -1,0 +1,29 @@
+tags: [clients]
+summary: Récupérer un profil client
+description: Retourne le profil d'un client par son identifiant.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: client_id
+    type: integer
+    required: true
+    description: Identifiant du client
+responses:
+  200:
+    description: Profil client
+    schema:
+      $ref: '#/definitions/ClientResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Client introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

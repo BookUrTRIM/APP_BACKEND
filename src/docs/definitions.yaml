@@ -1,0 +1,352 @@
+definitions:
+
+  # === AUTH DTOs ===
+  SignupDTO:
+    type: object
+    required: [email, password, role]
+    properties:
+      email:    { type: string, format: email, example: "client@bookurtrim.fr" }
+      password: { type: string, minLength: 8, example: "motdepasse123" }
+      role:
+        type: string
+        enum: [client, provider]
+        example: "client"
+
+  LoginDTO:
+    type: object
+    required: [email, password]
+    properties:
+      email:    { type: string, format: email, example: "client@bookurtrim.fr" }
+      password: { type: string, example: "motdepasse123" }
+
+  TokenResponse:
+    type: object
+    required: [access_token, token_type, role]
+    properties:
+      access_token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+      token_type:   { type: string, example: "bearer" }
+      role:         { type: string, enum: [client, provider], example: "client" }
+
+  UserAccountResponse:
+    type: object
+    required: [id, email, role, is_active, created_at, updated_at]
+    properties:
+      id:         { type: integer, example: 1 }
+      email:      { type: string, format: email, example: "client@bookurtrim.fr" }
+      role:       { type: string, enum: [client, provider], example: "client" }
+      is_active:  { type: boolean, example: true }
+      created_at: { type: string, format: date-time, example: "2025-01-15T10:00:00Z" }
+      updated_at: { type: string, format: date-time, example: "2025-01-15T10:00:00Z" }
+
+  # === CLIENT DTOs ===
+  ClientCreateDTO:
+    type: object
+    required: [last_name, first_name]
+    properties:
+      last_name:           { type: string, minLength: 1, maxLength: 100, example: "Dupont" }
+      first_name:          { type: string, minLength: 1, maxLength: 100, example: "Marie" }
+      phone:               { type: string, maxLength: 20, nullable: true, example: "+33 6 12 34 56 78" }
+      gender:              { type: string, maxLength: 50, nullable: true, example: "Femme" }
+      hair_length:         { type: string, maxLength: 50, nullable: true, example: "Long" }
+      hair_type:           { type: string, maxLength: 50, nullable: true, example: "Bouclé" }
+      history_preferences: { type: string, nullable: true, example: "Préfère des coupes naturelles" }
+
+  ClientUpdateDTO:
+    type: object
+    properties:
+      last_name:           { type: string, minLength: 1, maxLength: 100, example: "Dupont" }
+      first_name:          { type: string, minLength: 1, maxLength: 100, example: "Marie" }
+      phone:               { type: string, maxLength: 20, nullable: true, example: "+33 6 12 34 56 78" }
+      gender:              { type: string, maxLength: 50, nullable: true, example: "Femme" }
+      hair_length:         { type: string, maxLength: 50, nullable: true, example: "Mi-long" }
+      hair_type:           { type: string, maxLength: 50, nullable: true, example: "Lisse" }
+      history_preferences: { type: string, nullable: true, example: "Coupe + soin hydratant" }
+
+  ClientResponse:
+    type: object
+    required: [id, user_account_id, last_name, first_name, created_at, updated_at]
+    properties:
+      id:                  { type: integer, example: 1 }
+      user_account_id:     { type: integer, example: 1 }
+      last_name:           { type: string, example: "Dupont" }
+      first_name:          { type: string, example: "Marie" }
+      phone:               { type: string, nullable: true, example: "+33 6 12 34 56 78" }
+      gender:              { type: string, nullable: true, example: "Femme" }
+      hair_length:         { type: string, nullable: true, example: "Long" }
+      hair_type:           { type: string, nullable: true, example: "Bouclé" }
+      history_preferences: { type: string, nullable: true, example: "Préfère des coupes naturelles" }
+      stripe_customer_id:  { type: string, nullable: true, example: "cus_ABC123" }
+      created_at:          { type: string, format: date-time, example: "2025-01-15T10:00:00Z" }
+      updated_at:          { type: string, format: date-time, example: "2025-01-15T10:00:00Z" }
+
+  # === PROVIDER DTOs ===
+  ProviderCreateDTO:
+    type: object
+    required: [last_name, first_name]
+    properties:
+      last_name:  { type: string, minLength: 1, maxLength: 100, example: "Martin" }
+      first_name: { type: string, minLength: 1, maxLength: 100, example: "Léa" }
+      phone:      { type: string, maxLength: 20, nullable: true, example: "+33 6 98 76 54 32" }
+
+  ProviderUpdateDTO:
+    type: object
+    properties:
+      last_name:  { type: string, minLength: 1, maxLength: 100, example: "Martin" }
+      first_name: { type: string, minLength: 1, maxLength: 100, example: "Léa" }
+      phone:      { type: string, maxLength: 20, nullable: true, example: "+33 6 98 76 54 32" }
+
+  ProviderResponse:
+    type: object
+    required: [id, user_account_id, last_name, first_name, created_at, updated_at]
+    properties:
+      id:             { type: integer, example: 1 }
+      user_account_id:{ type: integer, example: 2 }
+      last_name:      { type: string, example: "Martin" }
+      first_name:     { type: string, example: "Léa" }
+      phone:          { type: string, nullable: true, example: "+33 6 98 76 54 32" }
+      created_at:     { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+      updated_at:     { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+
+  # === SERVICE DTOs ===
+  ServiceCreateDTO:
+    type: object
+    required: [name, default_duration, base_price]
+    properties:
+      name:             { type: string, minLength: 2, maxLength: 150, example: "Coupe femme" }
+      description:      { type: string, maxLength: 2000, nullable: true, example: "Coupe + brushing sur cheveux longs" }
+      default_duration: { type: integer, minimum: 1, example: 60, description: "Durée en minutes" }
+      base_price:       { type: number, format: float, minimum: 0, example: 45.00 }
+
+  ServiceUpdateDTO:
+    type: object
+    properties:
+      name:             { type: string, minLength: 2, maxLength: 150, example: "Coupe femme premium" }
+      description:      { type: string, maxLength: 2000, nullable: true, example: "Coupe + brushing + soin" }
+      default_duration: { type: integer, minimum: 1, example: 75 }
+      base_price:       { type: number, format: float, minimum: 0, example: 55.00 }
+
+  ServiceResponse:
+    type: object
+    required: [id, provider_id, name, default_duration, base_price, created_at, updated_at]
+    properties:
+      id:               { type: integer, example: 1 }
+      provider_id:      { type: integer, example: 1 }
+      name:             { type: string, example: "Coupe femme" }
+      description:      { type: string, nullable: true, example: "Coupe + brushing sur cheveux longs" }
+      default_duration: { type: integer, example: 60, description: "Durée en minutes" }
+      base_price:       { type: number, format: float, example: 45.00 }
+      created_at:       { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+      updated_at:       { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+
+  # === AVAILABILITY DTOs ===
+  AvailabilityCreateDTO:
+    type: object
+    required: [day_date, start_time, end_time]
+    properties:
+      day_date:   { type: string, format: date, example: "2025-06-15" }
+      start_time: { type: string, example: "09:00:00" }
+      end_time:   { type: string, example: "18:00:00" }
+      slot_type:
+        type: string
+        enum: [work, break]
+        default: work
+        example: "work"
+
+  AvailabilityUpdateDTO:
+    type: object
+    properties:
+      day_date:   { type: string, format: date, example: "2025-06-16" }
+      start_time: { type: string, example: "10:00:00" }
+      end_time:   { type: string, example: "19:00:00" }
+      slot_type:  { type: string, enum: [work, break], example: "work" }
+
+  AvailabilityResponse:
+    type: object
+    required: [id, provider_id, day_date, start_time, end_time, slot_type, created_at, updated_at]
+    properties:
+      id:          { type: integer, example: 1 }
+      provider_id: { type: integer, example: 1 }
+      day_date:    { type: string, format: date, example: "2025-06-15" }
+      start_time:  { type: string, example: "09:00:00" }
+      end_time:    { type: string, example: "18:00:00" }
+      slot_type:   { type: string, enum: [work, break], example: "work" }
+      created_at:  { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+      updated_at:  { type: string, format: date-time, example: "2025-01-10T09:00:00Z" }
+
+  # === APPOINTMENT DTOs ===
+  AppointmentCreateDTO:
+    type: object
+    required: [provider_id, start_at, end_at]
+    properties:
+      provider_id:      { type: integer, example: 1 }
+      start_at:         { type: string, format: date-time, example: "2025-06-15T10:00:00Z" }
+      end_at:           { type: string, format: date-time, example: "2025-06-15T11:00:00Z" }
+      specific_request: { type: string, maxLength: 2000, nullable: true, example: "Je souhaite une coupe asymétrique" }
+
+  AppointmentUpdateDTO:
+    type: object
+    properties:
+      status:
+        type: string
+        enum: [confirmed, cancelled, completed]
+        example: "confirmed"
+      products_used:    { type: string, maxLength: 2000, nullable: true, example: "Shampoing Kérastase + huile argan" }
+      specific_request: { type: string, maxLength: 2000, nullable: true }
+
+  AppointmentResponse:
+    type: object
+    required: [id, client_id, provider_id, start_at, end_at, status, created_at, updated_at]
+    properties:
+      id:               { type: integer, example: 1 }
+      client_id:        { type: integer, example: 1 }
+      provider_id:      { type: integer, example: 1 }
+      start_at:         { type: string, format: date-time, example: "2025-06-15T10:00:00Z" }
+      end_at:           { type: string, format: date-time, example: "2025-06-15T11:00:00Z" }
+      status:           { type: string, enum: [pending, confirmed, cancelled, completed], example: "pending" }
+      products_used:    { type: string, nullable: true, example: "Shampoing Kérastase" }
+      specific_request: { type: string, nullable: true, example: "Coupe asymétrique" }
+      created_at:       { type: string, format: date-time, example: "2025-06-10T08:00:00Z" }
+      updated_at:       { type: string, format: date-time, example: "2025-06-10T08:00:00Z" }
+
+  AppointmentServiceCreateDTO:
+    type: object
+    required: [service_id, billed_price]
+    properties:
+      service_id:        { type: integer, example: 1 }
+      adjusted_duration: { type: integer, minimum: 1, nullable: true, example: 75, description: "Override en minutes" }
+      billed_price:      { type: number, format: float, minimum: 0, example: 45.00 }
+
+  # === PAYMENT DTOs ===
+  PaymentCreateDTO:
+    type: object
+    required: [appointment_id, amount, payment_type]
+    properties:
+      appointment_id: { type: integer, example: 1 }
+      amount:         { type: number, format: float, minimum: 0.01, example: 20.00 }
+      currency:       { type: string, minLength: 3, maxLength: 3, default: "eur", example: "eur" }
+      payment_type:   { type: string, enum: [deposit, balance], example: "deposit" }
+
+  PaymentResponse:
+    type: object
+    required: [id, appointment_id, amount, currency, payment_type, status]
+    properties:
+      id:                       { type: integer, example: 1 }
+      appointment_id:           { type: integer, example: 1 }
+      amount:                   { type: number, format: float, example: 20.00 }
+      currency:                 { type: string, example: "eur" }
+      payment_type:             { type: string, enum: [deposit, balance], example: "deposit" }
+      status:                   { type: string, enum: [pending, validated], example: "pending" }
+      paid_at:                  { type: string, format: date-time, nullable: true, example: null }
+      stripe_payment_intent_id: { type: string, nullable: true, example: "pi_3ABC123" }
+      stripe_charge_id:         { type: string, nullable: true, example: null }
+
+  # === INVOICE DTO ===
+  InvoiceResponse:
+    type: object
+    required: [id, appointment_id, issued_at, total_amount]
+    properties:
+      id:             { type: integer, example: 1 }
+      appointment_id: { type: integer, example: 1 }
+      issued_at:      { type: string, format: date-time, example: "2025-06-15T12:00:00Z" }
+      total_amount:   { type: number, format: float, example: 45.00 }
+      pdf_url:        { type: string, nullable: true, example: "https://cdn.bookurtrim.fr/invoices/1.pdf" }
+
+  # === REVIEW DTOs ===
+  ReviewCreateDTO:
+    type: object
+    required: [appointment_id, rating]
+    properties:
+      appointment_id: { type: integer, example: 1 }
+      rating:         { type: integer, minimum: 1, maximum: 5, example: 5 }
+      comment:        { type: string, maxLength: 2000, nullable: true, example: "Excellente prestataire, très professionnelle !" }
+
+  ReviewResponse:
+    type: object
+    required: [id, appointment_id, rating, reviewed_at]
+    properties:
+      id:             { type: integer, example: 1 }
+      appointment_id: { type: integer, example: 1 }
+      rating:         { type: integer, minimum: 1, maximum: 5, example: 5 }
+      comment:        { type: string, nullable: true, example: "Excellente prestataire !" }
+      reviewed_at:    { type: string, format: date-time, example: "2025-06-15T14:00:00Z" }
+
+  # === NOTIFICATION DTOs ===
+  NotificationSendDTO:
+    type: object
+    required: [recipient, notification_type]
+    properties:
+      recipient:
+        type: string
+        enum: [client, provider]
+        example: "client"
+      notification_type:
+        type: string
+        enum: [confirmation, reminder, schedule_change]
+        example: "confirmation"
+
+  NotificationStatusUpdateDTO:
+    type: object
+    required: [status]
+    properties:
+      status:
+        type: string
+        enum: [pending, sent, failed]
+        example: "sent"
+
+  NotificationResponse:
+    type: object
+    required: [id, appointment_id, recipient, notification_type, sent_at, status]
+    properties:
+      id:                { type: integer, example: 1 }
+      appointment_id:    { type: integer, example: 1 }
+      recipient:         { type: string, enum: [client, provider], example: "client" }
+      notification_type: { type: string, enum: [confirmation, reminder, schedule_change], example: "confirmation" }
+      sent_at:           { type: string, format: date-time, example: "2025-06-15T10:01:00Z" }
+      status:            { type: string, enum: [pending, sent, failed], example: "sent" }
+
+  # === PAGINATION ===
+  PaginatedResponse:
+    type: object
+    required: [items, total, page, limit]
+    properties:
+      items: { type: array, items: {} }
+      total: { type: integer, example: 42 }
+      page:  { type: integer, example: 1 }
+      limit: { type: integer, example: 20 }
+
+  # === ERREURS ===
+  ErrorResponse:
+    type: object
+    required: [error]
+    properties:
+      error: { type: string, example: "Une erreur est survenue." }
+
+  ErrorUnauthorizedResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+      - properties:
+          error: { type: string, example: "Authentification requise." }
+
+  ErrorForbiddenResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+      - properties:
+          error: { type: string, example: "Accès refusé." }
+
+  ErrorNotFoundResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+      - properties:
+          error: { type: string, example: "Ressource introuvable." }
+
+  ErrorConflictResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+      - properties:
+          error: { type: string, example: "Cette ressource existe déjà." }
+
+  ErrorBadRequestResponse:
+    allOf:
+      - $ref: '#/definitions/ErrorResponse'
+      - properties:
+          error: { type: string, example: "Les données envoyées sont invalides." }

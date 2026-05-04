@@ -1,0 +1,23 @@
+tags: [providers]
+summary: Récupérer un prestataire
+description: Retourne le profil public d'un prestataire par son identifiant.
+produces: [application/json]
+parameters:
+  - in: path
+    name: provider_id
+    type: integer
+    required: true
+    description: Identifiant du prestataire
+responses:
+  200:
+    description: Profil prestataire
+    schema:
+      $ref: '#/definitions/ProviderResponse'
+  404:
+    description: Prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'
