@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────
+#  BookUrTrim – dépendances Python
+#  Installer avec : pip install -r requirements.txt
+# ─────────────────────────────────────────────
+
+
+# ── Framework web ─────────────────────────────
+Flask~=3.0
+flask-jwt-extended~=4.7     # @jwt_required, create_access_token, get_jwt…
+
+
+# ── Base de données ───────────────────────────
+SQLAlchemy~=2.0
+psycopg2-binary~=2.9        # driver PostgreSQL
+
+
+# ── Validation & sérialisation ────────────────
+pydantic[email]~=2.10       # [email] active EmailStr
+
+
+# ── Authentification ──────────────────────────
+bcrypt~=4.2                 # hachage des mots de passe
+
+
+# ── Paiement ──────────────────────────────────
+stripe~=11.0                # vérification des webhooks Stripe
+
+
+# ── Documentation API ─────────────────────────
+flasgger~=0.9               # Swagger UI intégré à Flask
+PyYAML~=6.0                 # lecture des fichiers .yaml de définitions
+
+
+# ── Exceptions HTTP ───────────────────────────
+Werkzeug~=3.1               # tiré automatiquement par Flask, listé pour clarté
+
+
+# ── Configuration ─────────────────────────────
+python-dotenv~=1.0          # chargement du fichier .env
