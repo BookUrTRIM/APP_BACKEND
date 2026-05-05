@@ -1,0 +1,44 @@
+tags: [appointments]
+summary: Mes rendez-vous (prestataire)
+description: Retourne la liste paginée des rendez-vous du prestataire connecté.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: query
+    name: status
+    type: string
+    enum: [pending, confirmed, cancelled, completed]
+    required: false
+    description: Filtrer par statut
+  - in: query
+    name: page
+    type: integer
+    default: 1
+  - in: query
+    name: limit
+    type: integer
+    default: 20
+responses:
+  200:
+    description: Liste paginée des rendez-vous
+    schema:
+      allOf:
+        - $ref: '#/definitions/PaginatedResponse'
+        - properties:
+            items:
+              type: array
+              items:
+                $ref: '#/definitions/AppointmentResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Profil prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

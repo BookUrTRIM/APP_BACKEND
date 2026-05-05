@@ -1,0 +1,33 @@
+tags: [services]
+summary: Supprimer une prestation
+description: |
+  Supprime définitivement une prestation.
+  Seul le prestataire propriétaire peut supprimer sa prestation.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: service_id
+    type: integer
+    required: true
+    description: Identifiant de la prestation
+responses:
+  204:
+    description: Prestation supprimée
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Prestation introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

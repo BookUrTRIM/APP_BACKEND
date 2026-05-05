@@ -1,0 +1,43 @@
+tags: [appointments]
+summary: Annuler un rendez-vous
+description: |
+  Annule un rendez-vous. Accessible au client ou au prestataire impliqué.
+  Seuls les rendez-vous en statut `pending` ou `confirmed` peuvent être annulés.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  200:
+    description: Rendez-vous annulé
+    schema:
+      $ref: '#/definitions/AppointmentResponse'
+  400:
+    description: Annulation impossible depuis le statut actuel
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  409:
+    description: Rendez-vous déjà annulé
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

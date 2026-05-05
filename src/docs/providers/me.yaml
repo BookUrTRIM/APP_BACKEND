@@ -1,0 +1,23 @@
+tags: [providers]
+summary: Mon profil prestataire
+description: Retourne le profil prestataire du compte connecté.
+produces: [application/json]
+security:
+  - BearerAuth: []
+responses:
+  200:
+    description: Profil prestataire
+    schema:
+      $ref: '#/definitions/ProviderResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Profil prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

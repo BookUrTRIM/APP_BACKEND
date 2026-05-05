@@ -1,0 +1,41 @@
+tags: [payments]
+summary: Initier un paiement
+description: |
+  Crée un enregistrement de paiement en attente pour un rendez-vous.
+  Le paiement sera confirmé via le webhook Stripe (`/payments/webhook`).
+  Un seul acompte (`deposit`) est autorisé par rendez-vous.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/PaymentCreateDTO'
+responses:
+  201:
+    description: Paiement initié
+    schema:
+      $ref: '#/definitions/PaymentResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  409:
+    description: Un acompte a déjà été versé pour ce rendez-vous
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

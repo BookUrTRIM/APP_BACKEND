@@ -1,0 +1,45 @@
+tags: [services]
+summary: Mettre à jour une prestation
+description: |
+  Met à jour une prestation existante.
+  Seul le prestataire propriétaire peut modifier sa prestation.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: service_id
+    type: integer
+    required: true
+    description: Identifiant de la prestation
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ServiceUpdateDTO'
+responses:
+  200:
+    description: Prestation mise à jour
+    schema:
+      $ref: '#/definitions/ServiceResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Prestation introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

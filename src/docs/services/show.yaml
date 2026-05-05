@@ -1,0 +1,23 @@
+tags: [services]
+summary: Récupérer une prestation
+description: Retourne le détail d'une prestation par son identifiant.
+produces: [application/json]
+parameters:
+  - in: path
+    name: service_id
+    type: integer
+    required: true
+    description: Identifiant de la prestation
+responses:
+  200:
+    description: Détail de la prestation
+    schema:
+      $ref: '#/definitions/ServiceResponse'
+  404:
+    description: Prestation introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

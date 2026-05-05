@@ -1,0 +1,34 @@
+tags: [providers]
+summary: Lister les disponibilités d'un prestataire
+description: |
+  Retourne les créneaux de disponibilité d'un prestataire.
+  Filtrable par date via le paramètre `date`.
+produces: [application/json]
+parameters:
+  - in: path
+    name: provider_id
+    type: integer
+    required: true
+    description: Identifiant du prestataire
+  - in: query
+    name: date
+    type: string
+    format: date
+    required: false
+    description: "Filtrer par date (format : YYYY-MM-DD)"
+    example: "2025-06-15"
+responses:
+  200:
+    description: Liste des créneaux
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/AvailabilityResponse'
+  404:
+    description: Prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

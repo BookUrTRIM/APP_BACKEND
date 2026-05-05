@@ -1,0 +1,41 @@
+tags: [notifications]
+summary: Mettre à jour le statut d'une notification
+description: |
+  Met à jour le statut d'une notification existante.
+  Utile pour marquer manuellement une notification comme `sent` ou `failed`.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: notification_id
+    type: integer
+    required: true
+    description: Identifiant de la notification
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/NotificationStatusUpdateDTO'
+responses:
+  200:
+    description: Statut mis à jour
+    schema:
+      $ref: '#/definitions/NotificationResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Notification introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

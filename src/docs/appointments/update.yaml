@@ -1,0 +1,46 @@
+tags: [appointments]
+summary: Mettre à jour un rendez-vous
+description: |
+  Met à jour un rendez-vous (statut, produits utilisés, demande spécifique).
+  Les transitions de statut autorisées sont : pending→confirmed, pending→cancelled,
+  confirmed→completed, confirmed→cancelled.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/AppointmentUpdateDTO'
+responses:
+  200:
+    description: Rendez-vous mis à jour
+    schema:
+      $ref: '#/definitions/AppointmentResponse'
+  400:
+    description: Transition de statut invalide ou données incorrectes
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'
