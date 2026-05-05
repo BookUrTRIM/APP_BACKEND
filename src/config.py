@@ -19,5 +19,5 @@ JWT_ACCESS_TOKEN_TTL_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_TTL_MINUTES"
 STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
-# ── Swagger ───────────────────────────────────
-SWAGGER_ENABLED: bool = os.getenv("SWAGGER_ENABLED", "0") == "1"
+# ── Documentation ───────────────────────────────────
+DOCS_ENABLED: bool = os.getenv("DOCS_ENABLED", "0") == "1"

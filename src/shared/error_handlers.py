@@ -1,17 +1,19 @@
 import logging
 
-from flask import Flask, jsonify
-from werkzeug.exceptions import HTTPException
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+from shared.base_exceptions import AppException
 
 logger = logging.getLogger(__name__)
 
 
-def register_error_handlers(app: Flask) -> None:
-    @app.errorhandler(HTTPException)
-    def handle_http(e: HTTPException):
-        return jsonify({"error": e.description}), e.code
+def register_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppException)
+    async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
 
-    @app.errorhandler(Exception)
-    def handle_unexpected(e: Exception):
-        logger.exception("Erreur inattendue : %s", e)
-        return jsonify({"error": "Une erreur interne s'est produite."}), 500
+    @app.exception_handler(Exception)
+    async def handle_unexpected(request: Request, exc: Exception) -> JSONResponse:
+        logger.exception("Erreur inattendue : %s", exc)
+        return JSONResponse(status_code=500, content={"error": "Une erreur interne s'est produite."})
