@@ -1,44 +1,29 @@
-from http import HTTPStatus
-from pathlib import Path
-
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from fastapi import APIRouter, Depends, Response
 
 from dtos.availability.availability_create_dto import AvailabilityCreateDTO
+from dtos.availability.availability_response_dto import AvailabilityResponseDTO
 from dtos.availability.availability_update_dto import AvailabilityUpdateDTO
 from services.availability_service import AvailabilityService
-from shared.decorators import require_json, safe_swag_from
+from shared.dependencies import get_current_user
 
-DOCS_DIR = Path(__file__).resolve().parents[1] / "docs" / "availabilities"
-availabilities_bp = Blueprint("availabilities", __name__, url_prefix="/availabilities")
-
-
-@safe_swag_from(DOCS_DIR / "create.yaml")
-@availabilities_bp.post("")
-@jwt_required()
-@require_json
-def availabilities_create():
-    user_account_id = int(get_jwt_identity())
-    dto = AvailabilityCreateDTO.model_validate(request.get_json())
-    result = AvailabilityService.create(user_account_id, dto)
-    return jsonify(result.model_dump()), HTTPStatus.CREATED
+availabilities_router = APIRouter(prefix="/availabilities", tags=["availabilities"])
 
 
-@safe_swag_from(DOCS_DIR / "update.yaml")
-@availabilities_bp.patch("/<int:availability_id>")
-@jwt_required()
-@require_json
-def availabilities_update(availability_id: int):
-    user_account_id = int(get_jwt_identity())
-    dto = AvailabilityUpdateDTO.model_validate(request.get_json())
-    result = AvailabilityService.update(availability_id, user_account_id, dto)
-    return jsonify(result.model_dump()), HTTPStatus.OK
+@availabilities_router.post("", status_code=201, response_model=AvailabilityResponseDTO)
+def availabilities_create(dto: AvailabilityCreateDTO, current_user: dict = Depends(get_current_user)):
+    return AvailabilityService.create(int(current_user["sub"]), dto)
 
 
-@safe_swag_from(DOCS_DIR / "delete.yaml")
-@availabilities_bp.delete("/<int:availability_id>")
-@jwt_required()
-def availabilities_delete(availability_id: int):
-    user_account_id = int(get_jwt_identity())
-    AvailabilityService.delete(availability_id, user_account_id)
-    return jsonify({}), HTTPStatus.NO_CONTENT
+@availabilities_router.patch("/{availability_id}", response_model=AvailabilityResponseDTO)
+def availabilities_update(
+    availability_id: int,
+    dto: AvailabilityUpdateDTO,
+    current_user: dict = Depends(get_current_user),
+):
+    return AvailabilityService.update(availability_id, int(current_user["sub"]), dto)
+
+
+@availabilities_router.delete("/{availability_id}", status_code=204)
+def availabilities_delete(availability_id: int, current_user: dict = Depends(get_current_user)):
+    AvailabilityService.delete(availability_id, int(current_user["sub"]))
+    return Response(status_code=204)

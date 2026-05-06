@@ -1,51 +1,34 @@
-from http import HTTPStatus
-from pathlib import Path
-
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from fastapi import APIRouter, Depends, Response
 
 from dtos.service.service_create_dto import ServiceCreateDTO
+from dtos.service.service_response_dto import ServiceResponseDTO
 from dtos.service.service_update_dto import ServiceUpdateDTO
 from services.service_service import ServiceService
-from shared.decorators import require_json, safe_swag_from
+from shared.dependencies import get_current_user
 
-DOCS_DIR = Path(__file__).resolve().parents[1] / "docs" / "services"
-services_bp = Blueprint("services", __name__, url_prefix="/services")
+services_router = APIRouter(prefix="/services", tags=["services"])
 
 
-@safe_swag_from(DOCS_DIR / "show.yaml")
-@services_bp.get("/<int:service_id>")
+@services_router.get("/{service_id}", response_model=ServiceResponseDTO)
 def services_show(service_id: int):
-    dto = ServiceService.get(service_id)
-    return jsonify(dto.model_dump()), HTTPStatus.OK
+    return ServiceService.get(service_id)
 
 
-@safe_swag_from(DOCS_DIR / "create.yaml")
-@services_bp.post("")
-@jwt_required()
-@require_json
-def services_create():
-    user_account_id = int(get_jwt_identity())
-    dto = ServiceCreateDTO.model_validate(request.get_json())
-    result = ServiceService.create(user_account_id, dto)
-    return jsonify(result.model_dump()), HTTPStatus.CREATED
+@services_router.post("", status_code=201, response_model=ServiceResponseDTO)
+def services_create(dto: ServiceCreateDTO, current_user: dict = Depends(get_current_user)):
+    return ServiceService.create(int(current_user["sub"]), dto)
 
 
-@safe_swag_from(DOCS_DIR / "update.yaml")
-@services_bp.patch("/<int:service_id>")
-@jwt_required()
-@require_json
-def services_update(service_id: int):
-    user_account_id = int(get_jwt_identity())
-    dto = ServiceUpdateDTO.model_validate(request.get_json())
-    result = ServiceService.update(service_id, user_account_id, dto)
-    return jsonify(result.model_dump()), HTTPStatus.OK
+@services_router.patch("/{service_id}", response_model=ServiceResponseDTO)
+def services_update(
+    service_id: int,
+    dto: ServiceUpdateDTO,
+    current_user: dict = Depends(get_current_user),
+):
+    return ServiceService.update(service_id, int(current_user["sub"]), dto)
 
 
-@safe_swag_from(DOCS_DIR / "delete.yaml")
-@services_bp.delete("/<int:service_id>")
-@jwt_required()
-def services_delete(service_id: int):
-    user_account_id = int(get_jwt_identity())
-    ServiceService.delete(service_id, user_account_id)
-    return jsonify({}), HTTPStatus.NO_CONTENT
+@services_router.delete("/{service_id}", status_code=204)
+def services_delete(service_id: int, current_user: dict = Depends(get_current_user)):
+    ServiceService.delete(service_id, int(current_user["sub"]))
+    return Response(status_code=204)

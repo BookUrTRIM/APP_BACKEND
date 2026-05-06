@@ -1,57 +1,42 @@
 import logging
-from http import HTTPStatus
-from pathlib import Path
+from typing import Any, List
 
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from dtos.payment.payment_create_dto import PaymentCreateDTO
+from dtos.payment.payment_response_dto import PaymentResponseDTO
 from services.payment_service import PaymentService
-from shared.decorators import require_json, safe_swag_from
+from shared.dependencies import get_current_user
 
-DOCS_DIR = Path(__file__).resolve().parents[1] / "docs" / "payments"
-payments_bp = Blueprint("payments", __name__, url_prefix="/payments")
+payments_router = APIRouter(prefix="/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
 
 
-@safe_swag_from(DOCS_DIR / "create.yaml")
-@payments_bp.post("")
-@jwt_required()
-@require_json
-def payments_create():
-    dto = PaymentCreateDTO.model_validate(request.get_json())
-    result = PaymentService.initiate(dto)
-    return jsonify(result.model_dump()), HTTPStatus.CREATED
+@payments_router.post("", status_code=201, response_model=PaymentResponseDTO)
+def payments_create(dto: PaymentCreateDTO, current_user: dict = Depends(get_current_user)):
+    return PaymentService.initiate(dto)
 
 
-@safe_swag_from(DOCS_DIR / "show.yaml")
-@payments_bp.get("/<int:payment_id>")
-@jwt_required()
-def payments_show(payment_id: int):
-    result = PaymentService.get(payment_id)
-    return jsonify(result.model_dump()), HTTPStatus.OK
+@payments_router.get("/{payment_id}", response_model=PaymentResponseDTO)
+def payments_show(payment_id: int, current_user: dict = Depends(get_current_user)):
+    return PaymentService.get(payment_id)
 
 
-@safe_swag_from(DOCS_DIR / "appointment_list.yaml")
-@payments_bp.get("/appointment/<int:appointment_id>")
-@jwt_required()
-def payments_by_appointment(appointment_id: int):
-    items = PaymentService.list_by_appointment(appointment_id)
-    return jsonify([it.model_dump() for it in items]), HTTPStatus.OK
+@payments_router.get("/appointment/{appointment_id}", response_model=List[PaymentResponseDTO])
+def payments_by_appointment(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return PaymentService.list_by_appointment(appointment_id)
 
 
-@payments_bp.post("/webhook")
-def payments_webhook():
+@payments_router.post("/webhook")
+async def payments_webhook(request: Request, stripe_signature: str = Header(None)):
     """
     Endpoint Stripe webhook — pas de JWT, signature vérifiée via STRIPE_WEBHOOK_SECRET.
-    Stripe envoie un POST avec l'en-tête Stripe-Signature.
     """
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get("Stripe-Signature", "")
+    payload = await request.body()
 
-    event = _verify_stripe_signature(payload, sig_header)
+    event = _verify_stripe_signature(payload, stripe_signature or "")
     if event is None:
-        return jsonify({"error": "Signature invalide."}), HTTPStatus.BAD_REQUEST
+        raise HTTPException(status_code=400, detail="Signature Stripe invalide.")
 
     event_type = event.get("type")
     data = event.get("data", {}).get("object", {})
@@ -63,14 +48,10 @@ def payments_webhook():
         PaymentService.confirm_webhook(pi_id, charge_id, metadata)
         logger.info("Webhook traité : payment_intent.succeeded pi=%s", pi_id)
 
-    return jsonify({"received": True}), HTTPStatus.OK
+    return {"received": True}
 
 
-def _verify_stripe_signature(payload: str, sig_header: str) -> dict | None:
-    """
-    Vérifie la signature Stripe. Retourne l'event parsé ou None si invalide.
-    Nécessite STRIPE_WEBHOOK_SECRET dans l'environnement et la lib stripe.
-    """
+def _verify_stripe_signature(payload: bytes, sig_header: str) -> dict | None:
     import os
     try:
         import stripe
