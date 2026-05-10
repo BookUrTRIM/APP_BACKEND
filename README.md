@@ -67,12 +67,7 @@ src/
 
 ## Installation
 
-### Prérequis
-
-- Python 3.11+
-- PostgreSQL 15+
-
-### Mise en place
+### Développement (SQLite — aucune installation requise)
 
 ```bash
 # 1. Cloner le dépôt
@@ -89,9 +84,22 @@ pip install -r requirements.txt
 
 # 4. Configurer les variables d'environnement
 cp .env.template .env
-# Éditer .env avec vos valeurs
+# Le fichier .env.template contient déjà SQLite par défaut
 
-# 5. Créer la base de données
+# 5. Lancer — la base SQLite est créée automatiquement au démarrage
+cd src
+uvicorn app:app --reload --port 8000
+```
+
+### Production (PostgreSQL)
+
+> Prérequis : PostgreSQL 15+
+
+```bash
+# Modifier DATABASE_URL dans .env
+DATABASE_URL=postgresql://user:password@localhost:5432/bookurtrim
+
+# Créer la base et appliquer le schéma
 psql -U postgres -c "CREATE DATABASE bookurtrim;"
 psql -U postgres -d bookurtrim -f db/script.sql
 ```

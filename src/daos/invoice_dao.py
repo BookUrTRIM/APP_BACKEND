@@ -11,10 +11,10 @@ from shared.db import Base
 class InvoiceDAO(Base):
     __tablename__ = "invoice"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     appointment_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('appointment.id', ondelete='RESTRICT', onupdate='CASCADE'),
         unique=True,
         nullable=False,

@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import sqlalchemy as sa
 from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from enums.payment_enum import PaymentStatus, PaymentType
@@ -13,10 +13,10 @@ from shared.db import Base
 class PaymentDAO(Base):
     __tablename__ = "payment"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     appointment_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('appointment.id', ondelete='RESTRICT', onupdate='CASCADE'),
         nullable=False,
         index=True,
@@ -36,7 +36,7 @@ class PaymentDAO(Base):
 
     stripe_payment_intent_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
     stripe_charge_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
-    stripe_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
+    stripe_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON)
 
     def __repr__(self) -> str:
         return (

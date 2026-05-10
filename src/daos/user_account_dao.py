@@ -11,12 +11,12 @@ from shared.db import Base
 class UserAccountDAO(Base):
     __tablename__ = "user_account"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        sa.Enum(UserRole, name='user_role', create_type=False), nullable=False
+        sa.Enum(UserRole, values_callable=lambda obj: [e.value for e in obj],name='user_role', create_type=False), nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

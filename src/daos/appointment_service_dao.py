@@ -11,12 +11,12 @@ class AppointmentServiceDAO(Base):
     __tablename__ = "appointment_service"
 
     appointment_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('appointment.id', ondelete='CASCADE', onupdate='CASCADE'),
         primary_key=True,
     )
     service_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('service.id', ondelete='RESTRICT', onupdate='CASCADE'),
         primary_key=True,
     )

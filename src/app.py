@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 import config
+from shared.db import init_db
 from controllers.appointment_controller import appointments_router
 from controllers.auth_controller import auth_router
 from controllers.availability_controller import availabilities_router
@@ -17,6 +18,7 @@ from shared.swagger import get_openapi_metadata
 
 def create_app() -> FastAPI:
     setup_logging()
+    init_db()
 
     meta = get_openapi_metadata()
     app = FastAPI(

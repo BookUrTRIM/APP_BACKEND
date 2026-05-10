@@ -12,16 +12,16 @@ from shared.db import Base
 class AppointmentDAO(Base):
     __tablename__ = "appointment"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     client_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('client.id', ondelete='RESTRICT', onupdate='CASCADE'),
         nullable=False,
         index=True,
     )
     provider_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('provider.id', ondelete='RESTRICT', onupdate='CASCADE'),
         nullable=False,
         index=True,
