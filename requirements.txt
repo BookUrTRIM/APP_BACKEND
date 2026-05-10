@@ -11,7 +11,6 @@ uvicorn[standard]~=0.32      # serveur ASGI (inclut websockets, httptools)
 
 # ── Base de données ───────────────────────────
 SQLAlchemy~=2.0
-psycopg2-binary~=2.9         # driver PostgreSQL
 
 
 # ── Validation & sérialisation ────────────────
@@ -29,3 +28,8 @@ stripe~=11.0                 # vérification des webhooks Stripe
 
 # ── Configuration ─────────────────────────────
 python-dotenv~=1.0           # chargement du fichier .env
+
+
+# ── Tests ─────────────────────────────────────
+pytest~=8.3
+httpx~=0.28                  # requis par FastAPI TestClient

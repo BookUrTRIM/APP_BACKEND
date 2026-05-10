@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.enums.user_enum import UserRole
+from enums.user_enum import UserRole
 
 
 @dataclass

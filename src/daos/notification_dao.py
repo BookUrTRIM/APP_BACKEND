@@ -11,10 +11,10 @@ from shared.db import Base
 class NotificationDAO(Base):
     __tablename__ = "notification"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     appointment_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('appointment.id', ondelete='CASCADE', onupdate='CASCADE'),
         nullable=False,
         index=True,

@@ -11,10 +11,10 @@ from shared.db import Base
 class ClientDAO(Base):
     __tablename__ = "client"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     user_account_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('user_account.id', ondelete='RESTRICT', onupdate='CASCADE'),
         unique=True,
         nullable=False,

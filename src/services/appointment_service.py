@@ -128,5 +128,5 @@ class AppointmentService:
     def _assert_valid_transition(current: AppointmentStatus, target: AppointmentStatus) -> None:
         if target not in _VALID_TRANSITIONS.get(current, set()):
             raise InvalidStatusTransition(
-                description=f"Transition '{current.value}' → '{target.value}' non autorisée."
+                detail=f"Transition '{current.value}' → '{target.value}' non autorisée."
             )

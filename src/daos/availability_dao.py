@@ -11,10 +11,10 @@ from shared.db import Base
 class AvailabilityDAO(Base):
     __tablename__ = "availability"
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, autoincrement=True)
 
     provider_id: Mapped[int] = mapped_column(
-        sa.BigInteger,
+        sa.Integer,
         ForeignKey('provider.id', ondelete='CASCADE', onupdate='CASCADE'),
         nullable=False,
         index=True,

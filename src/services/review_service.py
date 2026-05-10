@@ -4,9 +4,9 @@ from typing import List, Tuple
 from dtos.review.review_create_dto import ReviewCreateDTO
 from dtos.review.review_response_dto import ReviewResponseDTO
 from enums.appointment_enum import AppointmentStatus
-from exceptions.appointment_exceptions import AppointmentNotEligibleForReview, AppointmentNotFound
+from exceptions.appointment_exceptions import AppointmentNotFound
 from exceptions.client_exceptions import ClientNotFound
-from exceptions.review_exceptions import ReviewAccessDenied, ReviewAlreadyExists, ReviewNotFound
+from exceptions.review_exceptions import AppointmentNotEligibleForReview, ReviewAccessDenied, ReviewAlreadyExists, ReviewNotFound
 from mappers.review_mapper import ReviewMapper
 from repositories.appointment_repository import AppointmentRepository
 from repositories.client_repository import ClientRepository
