@@ -21,7 +21,6 @@ class NotificationService:
 
         try:
             NotificationService._dispatch(notification)
-            NotificationRepository.update_status(notification.id, NotificationStatus.SENT)
             notification = NotificationRepository.update_status(notification.id, NotificationStatus.SENT)
         except Exception as exc:
             logger.error("Échec d'envoi de la notification id=%d : %s", notification.id, exc)

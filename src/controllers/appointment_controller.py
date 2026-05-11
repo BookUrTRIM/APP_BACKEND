@@ -88,10 +88,6 @@ def appointments_invoice_show(appointment_id: int, current_user: dict = Depends(
 
 # ── Avis ───────────────────────────────────────────────────────────────────
 
-class _ReviewBody(ReviewCreateDTO):
-    appointment_id: int = 0  # sera écrasé par le path param
-
-
 @appointments_router.post("/{appointment_id}/review", status_code=201, response_model=ReviewResponseDTO)
 def appointments_review_create(
     appointment_id: int,
