@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 import config
 from shared.db import init_db
@@ -28,6 +29,14 @@ def create_app() -> FastAPI:
         openapi_tags=meta["openapi_tags"],
         docs_url="/docs" if config.DOCS_ENABLED else None,
         redoc_url="/redoc" if config.DOCS_ENABLED else None,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=config.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     register_error_handlers(app)
