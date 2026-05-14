@@ -22,10 +22,11 @@ class TestBookAppointment:
         resp = client.post("/appointments", json={**APPT_PAYLOAD, "provider_id": provider_profile["id"]})
         assert resp.status_code == 401
 
-    def test_book_no_client_profile(self, client, auth_headers, provider_profile):
+    def test_book_no_provider(self, client, auth_headers, client_profile):
         resp = client.post("/appointments", json={
-            **APPT_PAYLOAD,
-            "provider_id": provider_profile["id"],
+            "provider_id": 9999,
+            "start_at": "2025-12-01T10:00:00Z",
+            "end_at": "2025-12-01T11:00:00Z",
         }, headers=auth_headers)
         assert resp.status_code == 404
 

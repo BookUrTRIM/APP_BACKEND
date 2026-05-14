@@ -4,8 +4,10 @@ from typing import List, Optional, Tuple
 from dtos.appointment.appointment_create_dto import AppointmentCreateDTO
 from dtos.appointment.appointment_response_dto import AppointmentResponseDTO
 from dtos.appointment.appointment_update_dto import AppointmentUpdateDTO
+from exceptions.provider_exceptions import ProviderNotFound
 from enums.appointment_enum import AppointmentStatus
 from enums.user_enum import UserRole
+from exceptions.provider_exceptions import ProviderNotFound
 from exceptions.appointment_exceptions import (
     AppointmentAccessDenied,
     AppointmentAlreadyCancelled,
@@ -34,6 +36,9 @@ class AppointmentService:
         client = ClientRepository.get_by_user_account_id(user_account_id)
         if not client:
             raise ClientNotFound()
+
+        if not ProviderRepository.get_by_id(dto.provider_id):
+            raise ProviderNotFound()
 
         appointment = AppointmentRepository.create(dto, client.id)
         logger.info("RDV créé : id=%d client_id=%d provider_id=%d", appointment.id, appointment.client_id, appointment.provider_id)
@@ -69,7 +74,6 @@ class AppointmentService:
         AppointmentService._assert_access(appointment, user_account_id, current_role)
         AppointmentService._assert_valid_transition(appointment.status, AppointmentStatus.CANCELLED)
 
-        from dtos.appointment.appointment_update_dto import AppointmentUpdateDTO
         updated = AppointmentRepository.update(appointment_id, AppointmentUpdateDTO(status=AppointmentStatus.CANCELLED))
         logger.info("RDV annulé : id=%d", appointment_id)
         return AppointmentMapper.model_to_dto(updated)
@@ -103,7 +107,6 @@ class AppointmentService:
         page: int = 1,
         limit: int = 20,
     ) -> Tuple[List[AppointmentResponseDTO], int]:
-        from exceptions.provider_exceptions import ProviderNotFound
         provider = ProviderRepository.get_by_user_account_id(user_account_id)
         if not provider:
             raise ProviderNotFound()
