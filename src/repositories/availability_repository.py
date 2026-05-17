@@ -27,6 +27,24 @@ class AvailabilityRepository:
         return AvailabilityMapper.dao_to_model(dao)
 
     @staticmethod
+    def create_bulk(dtos: list[AvailabilityCreateDTO], provider_id: int) -> list[AvailabilityModel]:
+        session = get_db_session()
+        daos = [
+            AvailabilityDAO(
+                provider_id=provider_id,
+                day_date=dto.day_date,
+                start_time=dto.start_time,
+                end_time=dto.end_time,
+                slot_type=dto.slot_type,
+            ) for dto in dtos
+        ]
+        session.add_all(daos)
+        session.commit()
+        for dao in daos:
+            session.refresh(dao)
+        return [AvailabilityMapper.dao_to_model(dao) for dao in daos]
+
+    @staticmethod
     def update(availability_id: int, dto: AvailabilityUpdateDTO) -> Optional[AvailabilityModel]:
         session = get_db_session()
         dao = session.get(AvailabilityDAO, availability_id)
