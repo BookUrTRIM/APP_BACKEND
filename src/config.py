@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Cherche le .env depuis src/ ou depuis la racine du projet
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 # ── Application ───────────────────────────────
 APP_ENV: str = os.getenv("APP_ENV", "production")
@@ -19,5 +21,14 @@ JWT_ACCESS_TOKEN_TTL_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_TTL_MINUTES"
 STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
-# ── Documentation ───────────────────────────────────
+# ── Documentation ────────────────────────────────────
 DOCS_ENABLED: bool = os.getenv("DOCS_ENABLED", "0") == "1"
+
+# ── CORS ─────────────────────────────────────────────
+# Liste des origines autorisées, séparées par des virgules
+# Ex: http://localhost:3000,https://mon-front.vercel.app
+_cors_raw = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+CORS_ORIGINS: list[str] = (
+    ["*"] if _cors_raw.strip() == "*"
+    else [o.strip() for o in _cors_raw.split(",")]
+)

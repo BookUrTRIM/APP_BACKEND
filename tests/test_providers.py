@@ -13,9 +13,9 @@ SERVICE_PAYLOAD = {
 
 
 class TestProviderProfile:
-    def test_create_provider_success(self, client, provider_auth_headers):
-        resp = client.post("/providers", json=PROVIDER_PAYLOAD, headers=provider_auth_headers)
-        assert resp.status_code == 201
+    def test_signup_creates_profile(self, client, provider_auth_headers):
+        resp = client.get("/providers/me", headers=provider_auth_headers)
+        assert resp.status_code == 200
         data = resp.json()
         assert data["last_name"] == "Martin"
         assert "google_calendar_token_enc" not in data
@@ -25,7 +25,6 @@ class TestProviderProfile:
         assert resp.status_code == 401
 
     def test_create_provider_duplicate(self, client, provider_auth_headers):
-        client.post("/providers", json=PROVIDER_PAYLOAD, headers=provider_auth_headers)
         resp = client.post("/providers", json=PROVIDER_PAYLOAD, headers=provider_auth_headers)
         assert resp.status_code == 409
 
@@ -55,10 +54,6 @@ class TestProviderProfile:
         resp = client.get("/providers/me", headers=provider_auth_headers)
         assert resp.status_code == 200
         assert resp.json()["first_name"] == "Léa"
-
-    def test_get_me_no_profile(self, client, provider_auth_headers):
-        resp = client.get("/providers/me", headers=provider_auth_headers)
-        assert resp.status_code == 404
 
     def test_update_provider(self, client, provider_auth_headers, provider_profile):
         pid = provider_profile["id"]

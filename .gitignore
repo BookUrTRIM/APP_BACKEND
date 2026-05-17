@@ -204,4 +204,4 @@ __marimo__/
 coin_des_etudiants.db
 *.log
 
-.vscode/
+.vscode/*.db

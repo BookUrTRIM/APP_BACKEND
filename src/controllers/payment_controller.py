@@ -1,8 +1,11 @@
 import logging
+import os
 from typing import Any, List
 
+import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
+import config
 from dtos.payment.payment_create_dto import PaymentCreateDTO
 from dtos.payment.payment_response_dto import PaymentResponseDTO
 from services.payment_service import PaymentService
@@ -52,11 +55,8 @@ async def payments_webhook(request: Request, stripe_signature: str = Header(None
 
 
 def _verify_stripe_signature(payload: bytes, sig_header: str) -> dict | None:
-    import os
     try:
-        import stripe
-        webhook_secret = os.environ["STRIPE_WEBHOOK_SECRET"]
-        return stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-    except (ImportError, Exception) as e:
+        return stripe.Webhook.construct_event(payload, sig_header, config.STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
         logger.warning("Vérification Stripe ignorée : %s", e)
         return None

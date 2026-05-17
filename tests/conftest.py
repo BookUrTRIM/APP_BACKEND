@@ -45,11 +45,13 @@ def client(reset_db):
 
 @pytest.fixture
 def auth_headers(client):
-    """Headers JWT pour un compte client."""
     client.post("/auth/signup", json={
         "email": "client@bookurtrim.fr",
         "password": "motdepasse123",
         "role": "client",
+        "first_name": "Marie",
+        "last_name": "Dupont",
+        "phone": "+33 6 12 34 56 78",
     })
     resp = client.post("/auth/login", json={
         "email": "client@bookurtrim.fr",
@@ -60,11 +62,13 @@ def auth_headers(client):
 
 @pytest.fixture
 def provider_auth_headers(client):
-    """Headers JWT pour un compte prestataire."""
     client.post("/auth/signup", json={
         "email": "provider@bookurtrim.fr",
         "password": "motdepasse123",
         "role": "provider",
+        "first_name": "Léa",
+        "last_name": "Martin",
+        "phone": "+33 6 98 76 54 32",
     })
     resp = client.post("/auth/login", json={
         "email": "provider@bookurtrim.fr",
@@ -73,27 +77,19 @@ def provider_auth_headers(client):
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}
 
 
-# ── Profils ───────────────────────────────────────────────────────────────────
+# ── Profils (récupérés depuis /me car créés au signup) ────────────────────────
 
 @pytest.fixture
 def client_profile(client, auth_headers):
-    resp = client.post("/clients", json={
-        "last_name": "Dupont",
-        "first_name": "Marie",
-        "phone": "+33 6 12 34 56 78",
-    }, headers=auth_headers)
-    return resp.json()
+    return client.get("/clients/me", headers=auth_headers).json()
 
 
 @pytest.fixture
 def provider_profile(client, provider_auth_headers):
-    resp = client.post("/providers", json={
-        "last_name": "Martin",
-        "first_name": "Léa",
-        "phone": "+33 6 98 76 54 32",
-    }, headers=provider_auth_headers)
-    return resp.json()
+    return client.get("/providers/me", headers=provider_auth_headers).json()
 
+
+# ── Autres ressources ─────────────────────────────────────────────────────────
 
 @pytest.fixture
 def service(client, provider_auth_headers, provider_profile):
