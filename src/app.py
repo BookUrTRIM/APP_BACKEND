@@ -1,6 +1,7 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 import config
 from shared.db import init_db
@@ -30,7 +31,14 @@ def create_app() -> FastAPI:
         openapi_tags=meta["openapi_tags"],
         docs_url="/docs" if config.DOCS_ENABLED else None,
         redoc_url="/redoc" if config.DOCS_ENABLED else None,
+        redirect_slashes=False,
     )
+
+    @app.middleware("http")
+    async def strip_trailing_slash(request: Request, call_next):
+        if request.url.path != "/" and request.url.path.endswith("/"):
+            request.scope["path"] = request.url.path.rstrip("/")
+        return await call_next(request)
 
     app.add_middleware(
         CORSMiddleware,
