@@ -5,7 +5,6 @@ from fastapi.responses import RedirectResponse
 
 import config
 from shared.db import init_db
-from fastapi.middleware.cors import CORSMiddleware
 from controllers.appointment_controller import appointments_router
 from controllers.auth_controller import auth_router
 from controllers.availability_controller import availabilities_router
