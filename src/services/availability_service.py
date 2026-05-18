@@ -10,6 +10,8 @@ from exceptions.provider_exceptions import ProviderNotFound
 from mappers.availability_mapper import AvailabilityMapper
 from repositories.availability_repository import AvailabilityRepository
 from repositories.provider_repository import ProviderRepository
+from exceptions.provider_exceptions import ProviderNotFound
+from repositories.provider_repository import ProviderRepository
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +22,18 @@ class AvailabilityService:
         provider = ProviderRepository.get_by_user_account_id(user_account_id)
         if not provider:
             raise ProviderNotFound()
-
         availability = AvailabilityRepository.create(dto, provider.id)
         logger.info("Disponibilité créée : id=%d provider_id=%d", availability.id, availability.provider_id)
         return AvailabilityMapper.model_to_dto(availability)
+
+    @staticmethod
+    def create_bulk(user_account_id: int, dtos: list[AvailabilityCreateDTO]) -> list[AvailabilityResponseDTO]:
+        provider = ProviderRepository.get_by_user_account_id(user_account_id)
+        if not provider:
+            raise ProviderNotFound()
+        availabilities = AvailabilityRepository.create_bulk(dtos, provider.id)
+        logger.info("Création en masse : %d créneaux générés pour provider_id=%d", len(availabilities), provider.id)
+        return [AvailabilityMapper.model_to_dto(a) for a in availabilities]
 
     @staticmethod
     def update(
@@ -34,11 +44,9 @@ class AvailabilityService:
         availability = AvailabilityRepository.get_by_id(availability_id)
         if not availability:
             raise AvailabilityNotFound()
-
         provider = ProviderRepository.get_by_user_account_id(user_account_id)
         if not provider or provider.id != availability.provider_id:
             raise AvailabilityAccessDenied()
-
         updated = AvailabilityRepository.update(availability_id, dto)
         return AvailabilityMapper.model_to_dto(updated)
 
@@ -47,11 +55,9 @@ class AvailabilityService:
         availability = AvailabilityRepository.get_by_id(availability_id)
         if not availability:
             raise AvailabilityNotFound()
-
         provider = ProviderRepository.get_by_user_account_id(user_account_id)
         if not provider or provider.id != availability.provider_id:
             raise AvailabilityAccessDenied()
-
         AvailabilityRepository.delete(availability_id)
 
     @staticmethod
@@ -61,3 +67,5 @@ class AvailabilityService:
     ) -> List[AvailabilityResponseDTO]:
         slots = AvailabilityRepository.list_by_provider(provider_id, day_date=day_date)
         return [AvailabilityMapper.model_to_dto(s) for s in slots]
+
+
