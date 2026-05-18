@@ -26,6 +26,12 @@ def providers_me(current_user: dict = Depends(get_current_user)):
     return ProviderService.get_me(int(current_user["sub"]))
 
 
+@providers_router.patch("/me", response_model=ProviderResponseDTO)
+def providers_update_me(dto: ProviderUpdateDTO, current_user: dict = Depends(get_current_user)):
+    provider = ProviderService.get_me(int(current_user["sub"]))
+    return ProviderService.update(provider.id, int(current_user["sub"]), dto)
+
+
 @providers_router.get("/{provider_id}", response_model=ProviderResponseDTO)
 def providers_show(provider_id: int):
     return ProviderService.get(provider_id)

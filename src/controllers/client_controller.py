@@ -14,6 +14,12 @@ def clients_me(current_user: dict = Depends(get_current_user)):
     return ClientService.get_me(int(current_user["sub"]))
 
 
+@clients_router.patch("/me", response_model=ClientResponseDTO)
+def clients_update_me(dto: ClientUpdateDTO, current_user: dict = Depends(get_current_user)):
+    client = ClientService.get_me(int(current_user["sub"]))
+    return ClientService.update(client.id, int(current_user["sub"]), dto)
+
+
 @clients_router.get("/{client_id}", response_model=ClientResponseDTO)
 def clients_show(client_id: int, current_user: dict = Depends(get_current_user)):
     return ClientService.get(client_id)
