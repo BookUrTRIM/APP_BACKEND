@@ -1,4 +1,4 @@
-from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError
+from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError, UnprocessableEntity
 
 
 # ========== RESSOURCES (404) ==========
@@ -36,6 +36,13 @@ class DepositAlreadyPaid(Conflict):
 class PaymentAccessDenied(Forbidden):
     """Erreur levée lorsqu'un utilisateur tente d'accéder au paiement d'un autre."""
     def __init__(self, detail: str = "Accès refusé à ce paiement."):
+        super().__init__(detail=detail)
+
+
+# ========== VALIDATION (422) ==========
+
+class NoValidatedPayment(UnprocessableEntity):
+    def __init__(self, detail: str = "Aucun paiement validé trouvé pour ce rendez-vous."):
         super().__init__(detail=detail)
 
 

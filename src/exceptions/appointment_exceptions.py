@@ -1,4 +1,4 @@
-from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError
+from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, UnprocessableEntity, InternalServerError
 
 
 # ========== RESSOURCES (404) ==========
@@ -26,6 +26,14 @@ class InvalidStatusTransition(BadRequest):
 class AppointmentNotCompleted(BadRequest):
     """Erreur levée lorsqu'une action nécessite que le rendez-vous soit terminé."""
     def __init__(self, detail: str = "Le rendez-vous doit être terminé pour effectuer cette action."):
+        super().__init__(detail=detail)
+
+
+# ========== LIMITE MÉTIER (422) ==========
+
+class TooManyPendingAppointments(UnprocessableEntity):
+    """Erreur levée lorsqu'un client a déjà 2 rendez-vous en attente de paiement."""
+    def __init__(self, detail: str = "Vous avez déjà 2 réservations en attente de paiement. Payez ou annulez-en une avant d'en créer une nouvelle."):
         super().__init__(detail=detail)
 
 

@@ -26,5 +26,9 @@ class Conflict(AppException):
     status_code = 409
 
 
+class UnprocessableEntity(AppException):
+    status_code = 422
+
+
 class InternalServerError(AppException):
     status_code = 500

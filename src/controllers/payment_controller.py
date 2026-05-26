@@ -35,6 +35,11 @@ def payments_prepare(payment_id: int, current_user: dict = Depends(get_current_u
     return PaymentService.prepare(payment_id)
 
 
+@payments_router.post("/appointment/{appointment_id}/refund", response_model=PaymentResponseDTO)
+def payments_refund_by_appointment(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return PaymentService.refund_by_appointment(appointment_id)
+
+
 @payments_router.post("/webhook")
 async def payments_webhook(request: Request, stripe_signature: str = Header(None)):
     """

@@ -6,10 +6,12 @@ import stripe
 from dtos.payment.payment_create_dto import PaymentCreateDTO
 from dtos.payment.payment_intent_response_dto import PaymentIntentResponseDTO
 from dtos.payment.payment_response_dto import PaymentResponseDTO
-from enums.payment_enum import PaymentType
+from enums.appointment_enum import AppointmentStatus
 from exceptions.appointment_exceptions import AppointmentNotFound
+from enums.payment_enum import PaymentStatus, PaymentType
 from exceptions.payment_exceptions import (
     DepositAlreadyPaid,
+    NoValidatedPayment,
     PaymentAlreadyProcessed,
     PaymentFailed,
     PaymentNotFound,
@@ -96,8 +98,27 @@ class PaymentService:
         if not confirmed:
             raise PaymentFailed()
 
+        if confirmed.payment_type == PaymentType.DEPOSIT:
+            AppointmentRepository.update_status(confirmed.appointment_id, AppointmentStatus.CONFIRMED)
         logger.info("Paiement confirmé : stripe_pi=%s", stripe_payment_intent_id)
         return PaymentMapper.model_to_dto(confirmed)
+
+    @staticmethod
+    def refund_by_appointment(appointment_id: int) -> PaymentResponseDTO:
+        payment = PaymentRepository.get_validated_by_appointment(appointment_id)
+        if not payment:
+            raise NoValidatedPayment()
+
+        try:
+            stripe.Refund.create(charge=payment.stripe_charge_id)
+        except stripe.StripeError as e:
+            logger.error("Échec remboursement Stripe : %s", e)
+            raise PaymentFailed()
+
+        refunded = PaymentRepository.update_status_by_id(payment.id, PaymentStatus.REFUNDED)
+        AppointmentRepository.update_status(appointment_id, AppointmentStatus.CANCELLED)
+        logger.info("Remboursement manuel : appointment_id=%d charge=%s", appointment_id, payment.stripe_charge_id)
+        return PaymentMapper.model_to_dto(refunded)
 
     @staticmethod
     def get(payment_id: int) -> PaymentResponseDTO:

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import stripe
 import uvicorn
 from fastapi import FastAPI, Request
@@ -19,6 +21,14 @@ from shared.logger import setup_logging
 from shared.swagger import get_openapi_metadata
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    from shared.scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
+    yield
+    stop_scheduler()
+
+
 def create_app() -> FastAPI:
     setup_logging()
     init_db()
@@ -33,6 +43,7 @@ def create_app() -> FastAPI:
         docs_url="/docs" if config.DOCS_ENABLED else None,
         redoc_url="/redoc" if config.DOCS_ENABLED else None,
         redirect_slashes=False,
+        lifespan=_lifespan,
     )
 
     @app.middleware("http")
