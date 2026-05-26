@@ -1,3 +1,4 @@
+import stripe
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +22,7 @@ from shared.swagger import get_openapi_metadata
 def create_app() -> FastAPI:
     setup_logging()
     init_db()
+    stripe.api_key = config.STRIPE_SECRET_KEY
 
     meta = get_openapi_metadata()
     app = FastAPI(
