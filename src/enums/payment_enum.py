@@ -9,3 +9,5 @@ class PaymentType(str, Enum):
 class PaymentStatus(str, Enum):
     PENDING   = 'pending'
     VALIDATED = 'validated'
+    FAILED    = 'failed'
+    REFUNDED  = 'refunded'

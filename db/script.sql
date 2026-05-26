@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;   -- exclusion constraints on availab
 CREATE TYPE user_role           AS ENUM ('client', 'provider');
 CREATE TYPE appointment_status  AS ENUM ('confirmed', 'cancelled', 'completed', 'pending');
 CREATE TYPE payment_type        AS ENUM ('deposit', 'balance');
-CREATE TYPE payment_status      AS ENUM ('pending', 'validated');
+CREATE TYPE payment_status      AS ENUM ('pending', 'validated', 'failed', 'refunded');
 CREATE TYPE availability_type   AS ENUM ('work', 'break');
 CREATE TYPE notification_type   AS ENUM ('confirmation', 'reminder', 'schedule_change');
 CREATE TYPE notification_status AS ENUM ('pending', 'sent', 'failed');

@@ -50,9 +50,60 @@ class PaymentRepository:
         return PaymentMapper.dao_to_model(dao)
 
     @staticmethod
+    def refund(stripe_charge_id: str) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = (
+            session.query(PaymentDAO)
+            .where(PaymentDAO.stripe_charge_id == stripe_charge_id)
+            .first()
+        )
+        if not dao:
+            return None
+        dao.status = PaymentStatus.REFUNDED
+        session.commit()
+        session.refresh(dao)
+        return PaymentMapper.dao_to_model(dao)
+
+    @staticmethod
+    def fail(stripe_payment_intent_id: str) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = (
+            session.query(PaymentDAO)
+            .where(PaymentDAO.stripe_payment_intent_id == stripe_payment_intent_id)
+            .first()
+        )
+        if not dao:
+            return None
+        dao.status = PaymentStatus.FAILED
+        session.commit()
+        session.refresh(dao)
+        return PaymentMapper.dao_to_model(dao)
+
+    @staticmethod
+    def set_stripe_intent(payment_id: int, stripe_payment_intent_id: str) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = session.get(PaymentDAO, payment_id)
+        if not dao:
+            return None
+        dao.stripe_payment_intent_id = stripe_payment_intent_id
+        session.commit()
+        session.refresh(dao)
+        return PaymentMapper.dao_to_model(dao)
+
+    @staticmethod
     def get_by_id(payment_id: int) -> Optional[PaymentModel]:
         session = get_db_session()
         dao = session.get(PaymentDAO, payment_id)
+        return PaymentMapper.dao_to_model(dao) if dao else None
+
+    @staticmethod
+    def get_by_stripe_charge(stripe_charge_id: str) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = (
+            session.query(PaymentDAO)
+            .where(PaymentDAO.stripe_charge_id == stripe_charge_id)
+            .first()
+        )
         return PaymentMapper.dao_to_model(dao) if dao else None
 
     @staticmethod
