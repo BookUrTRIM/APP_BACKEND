@@ -67,11 +67,26 @@ def appointments_update(
     )
 
 
+@appointments_router.post("/{appointment_id}/complete", response_model=AppointmentResponseDTO)
+def appointments_complete(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return AppointmentService.complete(appointment_id, int(current_user["sub"]))
+
+
 @appointments_router.post("/{appointment_id}/cancel", response_model=AppointmentResponseDTO)
 def appointments_cancel(appointment_id: int, current_user: dict = Depends(get_current_user)):
     return AppointmentService.cancel(
         appointment_id, int(current_user["sub"]), UserRole(current_user["role"])
     )
+
+
+@appointments_router.post("/{appointment_id}/cancel-by-client", response_model=AppointmentResponseDTO)
+def appointments_cancel_by_client(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return AppointmentService.cancel_by_client(appointment_id, int(current_user["sub"]))
+
+
+@appointments_router.post("/{appointment_id}/cancel-by-provider", response_model=AppointmentResponseDTO)
+def appointments_cancel_by_provider(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return AppointmentService.cancel_by_provider(appointment_id, int(current_user["sub"]))
 
 
 # ── Facture ────────────────────────────────────────────────────────────────

@@ -1,4 +1,7 @@
+from datetime import datetime
 from typing import List, Optional, Tuple
+
+import sqlalchemy as sa
 
 from daos.appointment_dao import AppointmentDAO
 from dtos.appointment.appointment_create_dto import AppointmentCreateDTO
@@ -54,6 +57,39 @@ class AppointmentRepository:
         session.delete(dao)
         session.commit()
         return True
+
+    @staticmethod
+    def count_pending_by_client(client_id: int) -> int:
+        session = get_db_session()
+        return (
+            session.query(AppointmentDAO)
+            .where(AppointmentDAO.client_id == client_id)
+            .where(AppointmentDAO.status == AppointmentStatus.PENDING)
+            .count()
+        )
+
+    @staticmethod
+    def expire_old_pending(threshold: datetime) -> int:
+        session = get_db_session()
+        result = session.execute(
+            sa.update(AppointmentDAO)
+            .where(AppointmentDAO.status == AppointmentStatus.PENDING)
+            .where(AppointmentDAO.created_at < threshold)
+            .values(status=AppointmentStatus.EXPIRED)
+        )
+        session.commit()
+        return result.rowcount
+
+    @staticmethod
+    def update_status(appointment_id: int, status: AppointmentStatus) -> Optional[AppointmentModel]:
+        session = get_db_session()
+        dao = session.get(AppointmentDAO, appointment_id)
+        if not dao:
+            return None
+        dao.status = status
+        session.commit()
+        session.refresh(dao)
+        return AppointmentMapper.dao_to_model(dao)
 
     @staticmethod
     def get_by_id(appointment_id: int) -> Optional[AppointmentModel]:

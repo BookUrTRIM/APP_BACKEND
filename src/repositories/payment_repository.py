@@ -126,3 +126,25 @@ class PaymentRepository:
             .all()
         )
         return [PaymentMapper.dao_to_model(row) for row in rows]
+
+    @staticmethod
+    def get_validated_by_appointment(appointment_id: int) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = (
+            session.query(PaymentDAO)
+            .where(PaymentDAO.appointment_id == appointment_id)
+            .where(PaymentDAO.status == PaymentStatus.VALIDATED)
+            .first()
+        )
+        return PaymentMapper.dao_to_model(dao) if dao else None
+
+    @staticmethod
+    def update_status_by_id(payment_id: int, status: PaymentStatus) -> Optional[PaymentModel]:
+        session = get_db_session()
+        dao = session.get(PaymentDAO, payment_id)
+        if not dao:
+            return None
+        dao.status = status
+        session.commit()
+        session.refresh(dao)
+        return PaymentMapper.dao_to_model(dao)
