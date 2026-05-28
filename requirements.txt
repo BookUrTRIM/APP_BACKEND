@@ -33,3 +33,5 @@ python-dotenv~=1.0           # chargement du fichier .env
 # ── Tests ─────────────────────────────────────
 pytest~=8.3
 httpx~=0.28                  # requis par FastAPI TestClient
+
+psycopg2-binary~=2.9

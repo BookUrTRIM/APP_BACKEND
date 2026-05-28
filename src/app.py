@@ -33,6 +33,7 @@ def create_app() -> FastAPI:
         docs_url="/docs" if config.DOCS_ENABLED else None,
         redoc_url="/redoc" if config.DOCS_ENABLED else None,
         redirect_slashes=False,
+        root_path="/api"
     )
 
     @app.middleware("http")
