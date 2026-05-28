@@ -118,6 +118,21 @@ CREATE TABLE service (
 );
 
 -- ────────────────────────────────────────────────────────────
+--  TABLE : service_question
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE service_question (
+    id           BIGSERIAL   PRIMARY KEY,
+    service_id   BIGINT      NOT NULL,
+    question     TEXT        NOT NULL,
+    options      JSONB       NOT NULL DEFAULT '[]',
+    "order"      INT         NOT NULL DEFAULT 0,
+
+    CONSTRAINT fk_question_service
+        FOREIGN KEY (service_id) REFERENCES service (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
 --  TABLE : availability
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE availability (
