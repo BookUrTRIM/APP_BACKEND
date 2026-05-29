@@ -2,6 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Response
 
+from dtos.service.duration_calculate_dto import DurationCalculateDTO
+from dtos.service.duration_response_dto import DurationResponseDTO
 from dtos.service.service_create_dto import ServiceCreateDTO
 from dtos.service.service_question_create_dto import ServiceQuestionCreateDTO
 from dtos.service.service_question_response_dto import ServiceQuestionResponseDTO
@@ -41,6 +43,11 @@ def services_delete(service_id: int, current_user: dict = Depends(get_current_us
 
 
 # ── Questions ──────────────────────────────────────────────────────────────
+
+@services_router.post("/{service_id}/calculate-duration", response_model=DurationResponseDTO)
+def services_calculate_duration(service_id: int, dto: DurationCalculateDTO):
+    return ServiceQuestionService.calculate_duration(service_id, dto)
+
 
 @services_router.get("/{service_id}/questions", response_model=List[ServiceQuestionResponseDTO])
 def questions_list(service_id: int):

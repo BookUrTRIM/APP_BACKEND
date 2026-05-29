@@ -1,12 +1,13 @@
 import logging
 from typing import List
 
+from dtos.service.duration_calculate_dto import DurationCalculateDTO
+from dtos.service.duration_response_dto import DurationResponseDTO
 from dtos.service.service_question_create_dto import ServiceQuestionCreateDTO
 from dtos.service.service_question_response_dto import ServiceQuestionResponseDTO
 from dtos.service.service_question_update_dto import ServiceQuestionUpdateDTO
-from exceptions.provider_exceptions import ProviderNotFound
 from exceptions.service_exceptions import ServiceAccessDenied, ServiceNotFound
-from exceptions.service_question_exceptions import ServiceQuestionNotFound
+from exceptions.service_question_exceptions import ServiceQuestionIndexError, ServiceQuestionNotFound
 from mappers.service_question_mapper import ServiceQuestionMapper
 from repositories.provider_repository import ProviderRepository
 from repositories.service_question_repository import ServiceQuestionRepository
@@ -64,3 +65,20 @@ class ServiceQuestionService:
 
         ServiceQuestionRepository.delete(question_id)
         logger.info("Question supprimée : id=%d", question_id)
+
+    @staticmethod
+    def calculate_duration(service_id: int, dto: DurationCalculateDTO) -> DurationResponseDTO:
+        service = ServiceRepository.get_by_id(service_id)
+        if not service:
+            raise ServiceNotFound()
+
+        duration = service.default_duration
+        for answer in dto.answers:
+            question = ServiceQuestionRepository.get_by_id(answer.question_id)
+            if not question:
+                raise ServiceQuestionNotFound()
+            if answer.option_index >= len(question.options):
+                raise ServiceQuestionIndexError()
+            duration += question.options[answer.option_index]["extra_minutes"]
+
+        return DurationResponseDTO(duration=duration)
