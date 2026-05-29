@@ -6,3 +6,4 @@ class AppointmentStatus(str, Enum):
     CONFIRMED = 'confirmed'
     CANCELLED = 'cancelled'
     COMPLETED = 'completed'
+    EXPIRED   = 'expired'

@@ -26,6 +26,10 @@ PyJWT~=2.9                   # génération / validation des tokens JWT
 stripe~=11.0                 # vérification des webhooks Stripe
 
 
+# ── Scheduler ─────────────────────────────────────────────────────────────────
+APScheduler~=3.10            # jobs en arrière-plan (expiration des RDV PENDING)
+
+
 # ── Configuration ─────────────────────────────
 python-dotenv~=1.0           # chargement du fichier .env
 

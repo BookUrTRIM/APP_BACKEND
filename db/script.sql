@@ -12,13 +12,15 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;   -- exclusion constraints on availab
 --  ENUM TYPES
 -- ────────────────────────────────────────────────────────────
 CREATE TYPE user_role           AS ENUM ('client', 'provider');
-CREATE TYPE appointment_status  AS ENUM ('confirmed', 'cancelled', 'completed', 'pending');
+CREATE TYPE appointment_status  AS ENUM ('confirmed', 'cancelled', 'completed', 'pending', 'expired');
 CREATE TYPE payment_type        AS ENUM ('deposit', 'balance');
 CREATE TYPE payment_status      AS ENUM ('pending', 'validated', 'failed', 'refunded');
 CREATE TYPE availability_type   AS ENUM ('work', 'break');
 CREATE TYPE notification_type   AS ENUM ('confirmation', 'reminder', 'schedule_change');
 CREATE TYPE notification_status AS ENUM ('pending', 'sent', 'failed');
 CREATE TYPE recipient_type      AS ENUM ('client', 'provider');
+CREATE TYPE hair_type           AS ENUM ('lisse', 'ondulé', 'bouclé', 'crépu fin', 'crépu épais');
+CREATE TYPE hair_length         AS ENUM ('court', 'mi-long', 'long', 'très long');
 
 -- ────────────────────────────────────────────────────────────
 --  TABLE : user_account  (authentication)
@@ -61,6 +63,22 @@ CREATE TABLE client (
 );
 
 -- ────────────────────────────────────────────────────────────
+--  TABLE : client_hair_profile
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE client_hair_profile (
+    id           BIGSERIAL    PRIMARY KEY,
+    client_id    BIGINT       NOT NULL,
+    hair_type    hair_type    NOT NULL,
+    hair_length  hair_length  NOT NULL,
+
+    CONSTRAINT fk_hair_profile_client
+        FOREIGN KEY (client_id) REFERENCES client (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT uq_hair_profile_client UNIQUE (client_id)
+);
+
+-- ────────────────────────────────────────────────────────────
 --  TABLE : provider
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE provider (
@@ -96,6 +114,21 @@ CREATE TABLE service (
 
     CONSTRAINT fk_service_provider
         FOREIGN KEY (provider_id) REFERENCES provider (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
+--  TABLE : service_question
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE service_question (
+    id           BIGSERIAL   PRIMARY KEY,
+    service_id   BIGINT      NOT NULL,
+    question     TEXT        NOT NULL,
+    options      JSONB       NOT NULL DEFAULT '[]',
+    "order"      INT         NOT NULL DEFAULT 0,
+
+    CONSTRAINT fk_question_service
+        FOREIGN KEY (service_id) REFERENCES service (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
