@@ -1,11 +1,15 @@
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from dtos.client.client_create_dto import ClientCreateDTO
 from dtos.client.client_response_dto import ClientResponseDTO
 from dtos.client.client_update_dto import ClientUpdateDTO
+from dtos.client.hair_profile_response_dto import HairProfileResponseDTO
+from dtos.client.hair_profile_upsert_dto import HairProfileUpsertDTO
 from exceptions.client_exceptions import ClientAccessDenied, ClientAlreadyExists, ClientNotFound
+from mappers.client_hair_profile_mapper import ClientHairProfileMapper
 from mappers.client_mapper import ClientMapper
+from repositories.client_hair_profile_repository import ClientHairProfileRepository
 from repositories.client_repository import ClientRepository
 
 logger = logging.getLogger(__name__)
@@ -45,3 +49,20 @@ class ClientService:
         if not client:
             raise ClientNotFound()
         return ClientMapper.model_to_dto(client)
+
+    @staticmethod
+    def get_hair_profile(user_account_id: int) -> Optional[HairProfileResponseDTO]:
+        client = ClientRepository.get_by_user_account_id(user_account_id)
+        if not client:
+            raise ClientNotFound()
+        profile = ClientHairProfileRepository.get_by_client(client.id)
+        return ClientHairProfileMapper.model_to_dto(profile) if profile else None
+
+    @staticmethod
+    def upsert_hair_profile(user_account_id: int, dto: HairProfileUpsertDTO) -> HairProfileResponseDTO:
+        client = ClientRepository.get_by_user_account_id(user_account_id)
+        if not client:
+            raise ClientNotFound()
+        profile = ClientHairProfileRepository.upsert(client.id, dto)
+        logger.info("Profil capillaire mis à jour : client_id=%d", client.id)
+        return ClientHairProfileMapper.model_to_dto(profile)

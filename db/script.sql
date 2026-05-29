@@ -19,6 +19,8 @@ CREATE TYPE availability_type   AS ENUM ('work', 'break');
 CREATE TYPE notification_type   AS ENUM ('confirmation', 'reminder', 'schedule_change');
 CREATE TYPE notification_status AS ENUM ('pending', 'sent', 'failed');
 CREATE TYPE recipient_type      AS ENUM ('client', 'provider');
+CREATE TYPE hair_type           AS ENUM ('lisse', 'ondulé', 'bouclé', 'crépu fin', 'crépu épais');
+CREATE TYPE hair_length         AS ENUM ('court', 'mi-long', 'long', 'très long');
 
 -- ────────────────────────────────────────────────────────────
 --  TABLE : user_account  (authentication)
@@ -58,6 +60,22 @@ CREATE TABLE client (
 
     CONSTRAINT uq_client_user       UNIQUE (user_account_id),
     CONSTRAINT uq_client_stripe_cus UNIQUE (stripe_customer_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+--  TABLE : client_hair_profile
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE client_hair_profile (
+    id           BIGSERIAL    PRIMARY KEY,
+    client_id    BIGINT       NOT NULL,
+    hair_type    hair_type    NOT NULL,
+    hair_length  hair_length  NOT NULL,
+
+    CONSTRAINT fk_hair_profile_client
+        FOREIGN KEY (client_id) REFERENCES client (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT uq_hair_profile_client UNIQUE (client_id)
 );
 
 -- ────────────────────────────────────────────────────────────
