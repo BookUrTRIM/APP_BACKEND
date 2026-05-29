@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+      - develop
       - ci/github-actions
+
+  pull_request:
+    branches:
+      - main
+      - develop
 
 permissions:
   contents: read
@@ -29,5 +35,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ghcr.io/bookurtrim/bookurtrim-api:latest
