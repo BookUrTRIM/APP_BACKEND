@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if config.DOCS_ENABLED else None,
         redirect_slashes=False,
         lifespan=_lifespan,
+        root_path="/api"
     )
 
     @app.middleware("http")
