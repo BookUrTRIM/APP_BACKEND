@@ -59,6 +59,7 @@ class AuthService:
         token = jwt.encode(
             {
                 "sub": str(account.id),
+                "email": account.email,
                 "role": account.role.value,
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=config.JWT_ACCESS_TOKEN_TTL_MINUTES),
             },

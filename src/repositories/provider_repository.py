@@ -55,6 +55,17 @@ class ProviderRepository:
         return ProviderMapper.dao_to_model(dao) if dao else None
 
     @staticmethod
+    def set_stripe_account(provider_id: int, stripe_account_id: str) -> Optional[ProviderModel]:
+        session = get_db_session()
+        dao = session.get(ProviderDAO, provider_id)
+        if not dao:
+            return None
+        dao.stripe_account_id = stripe_account_id
+        session.commit()
+        session.refresh(dao)
+        return ProviderMapper.dao_to_model(dao)
+
+    @staticmethod
     def list(page: int = 1, limit: int = 20) -> Tuple[List[ProviderModel], int]:
         session = get_db_session()
         query = session.query(ProviderDAO)

@@ -125,6 +125,9 @@ class AppointmentService:
 
     @staticmethod
     def complete(appointment_id: int, user_account_id: int) -> AppointmentResponseDTO:
+        from services.invoice_service import InvoiceService
+        from exceptions.invoice_exceptions import InvoiceAlreadyExists
+
         appointment = AppointmentRepository.get_by_id(appointment_id)
         if not appointment:
             raise AppointmentNotFound()
@@ -135,6 +138,12 @@ class AppointmentService:
 
         AppointmentService._assert_valid_transition(appointment.status, AppointmentStatus.COMPLETED)
         updated = AppointmentRepository.update_status(appointment_id, AppointmentStatus.COMPLETED)
+
+        try:
+            InvoiceService.generate(appointment_id)
+        except InvoiceAlreadyExists:
+            pass
+
         logger.info("RDV complété : id=%d", appointment_id)
         return AppointmentMapper.model_to_dto(updated)
 

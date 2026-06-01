@@ -12,5 +12,6 @@ class ProviderResponseDTO(BaseModel):
     last_name: str
     first_name: str
     phone: Optional[str]
+    stripe_account_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime

@@ -26,6 +26,7 @@ class ProviderDAO(Base):
     phone: Mapped[Optional[str]] = mapped_column(String(20))
 
     google_calendar_token_enc: Mapped[Optional[str]] = mapped_column(Text)
+    stripe_account_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

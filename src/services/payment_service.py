@@ -19,7 +19,10 @@ from exceptions.payment_exceptions import (
 from mappers.payment_mapper import PaymentMapper
 from repositories.appointment_repository import AppointmentRepository
 from repositories.availability_repository import AvailabilityRepository
+from repositories.client_repository import ClientRepository
 from repositories.payment_repository import PaymentRepository
+from repositories.provider_repository import ProviderRepository
+from repositories.user_account_repository import UserAccountRepository
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +56,25 @@ class PaymentService:
                 raise PaymentFailed()
             return PaymentIntentResponseDTO(payment_id=payment_id, client_secret=intent.client_secret)
 
+        receipt_email = None
+        transfer_destination = None
+        appointment = AppointmentRepository.get_by_id(payment.appointment_id)
+        if appointment:
+            client = ClientRepository.get_by_id(appointment.client_id)
+            if client:
+                user = UserAccountRepository.get_by_id(client.user_account_id)
+                if user:
+                    receipt_email = user.email
+            provider = ProviderRepository.get_by_id(appointment.provider_id)
+            if provider and provider.stripe_account_id:
+                transfer_destination = provider.stripe_account_id
+
         try:
             intent = stripe.PaymentIntent.create(
                 amount=int(payment.amount * 100),
                 currency=payment.currency,
+                receipt_email=receipt_email,
+                transfer_data={"destination": transfer_destination} if transfer_destination else None,
                 metadata={"payment_id": payment.id, "appointment_id": payment.appointment_id},
             )
         except stripe.StripeError as e:
