@@ -1,10 +1,12 @@
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from daos.availability_dao import AvailabilityDAO
 from dtos.availability.availability_create_dto import AvailabilityCreateDTO
 from dtos.availability.availability_update_dto import AvailabilityUpdateDTO
+from enums.availability_enum import AvailabilityType
 from mappers.availability_mapper import AvailabilityMapper
+from models.appointment_model import AppointmentModel
 from models.availability_model import AvailabilityModel
 from shared.db import get_db_session
 
@@ -80,6 +82,34 @@ class AvailabilityRepository:
         session = get_db_session()
         dao = session.get(AvailabilityDAO, availability_id)
         return AvailabilityMapper.dao_to_model(dao) if dao else None
+
+    @staticmethod
+    def create_booked(appointment: AppointmentModel) -> None:
+        session = get_db_session()
+        dao = AvailabilityDAO(
+            provider_id=appointment.provider_id,
+            day_date=appointment.start_at.date(),
+            start_time=appointment.start_at.time(),
+            end_time=appointment.end_at.time(),
+            slot_type=AvailabilityType.BOOKED,
+        )
+        session.add(dao)
+        session.commit()
+
+    @staticmethod
+    def delete_booked(provider_id: int, start_at: datetime) -> None:
+        session = get_db_session()
+        dao = (
+            session.query(AvailabilityDAO)
+            .where(AvailabilityDAO.provider_id == provider_id)
+            .where(AvailabilityDAO.day_date == start_at.date())
+            .where(AvailabilityDAO.start_time == start_at.time())
+            .where(AvailabilityDAO.slot_type == AvailabilityType.BOOKED.value)
+            .first()
+        )
+        if dao:
+            session.delete(dao)
+            session.commit()
 
     @staticmethod
     def list_by_provider(provider_id: int, day_date: Optional[date] = None) -> List[AvailabilityModel]:

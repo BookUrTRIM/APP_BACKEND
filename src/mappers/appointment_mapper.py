@@ -15,6 +15,7 @@ class AppointmentMapper:
             status=dao.status,
             products_used=dao.products_used,
             specific_request=dao.specific_request,
+            answers=dao.answers,
             created_at=dao.created_at,
             updated_at=dao.updated_at,
         )
@@ -30,6 +31,7 @@ class AppointmentMapper:
             status=model.status,
             products_used=model.products_used,
             specific_request=model.specific_request,
+            answers=model.answers,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

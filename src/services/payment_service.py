@@ -18,6 +18,7 @@ from exceptions.payment_exceptions import (
 )
 from mappers.payment_mapper import PaymentMapper
 from repositories.appointment_repository import AppointmentRepository
+from repositories.availability_repository import AvailabilityRepository
 from repositories.payment_repository import PaymentRepository
 
 logger = logging.getLogger(__name__)
@@ -99,7 +100,9 @@ class PaymentService:
             raise PaymentFailed()
 
         if confirmed.payment_type == PaymentType.DEPOSIT:
-            AppointmentRepository.update_status(confirmed.appointment_id, AppointmentStatus.CONFIRMED)
+            appointment = AppointmentRepository.update_status(confirmed.appointment_id, AppointmentStatus.CONFIRMED)
+            if appointment:
+                AvailabilityRepository.create_booked(appointment)
         logger.info("Paiement confirmé : stripe_pi=%s", stripe_payment_intent_id)
         return PaymentMapper.model_to_dto(confirmed)
 
