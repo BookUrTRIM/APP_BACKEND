@@ -23,6 +23,7 @@ class AppointmentRepository:
             start_at=dto.start_at,
             end_at=dto.end_at,
             specific_request=dto.specific_request,
+            answers=[a.model_dump() for a in dto.answers] if dto.answers else None,
         )
         session.add(dao)
         session.commit()

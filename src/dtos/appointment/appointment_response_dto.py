@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -17,5 +17,6 @@ class AppointmentResponseDTO(BaseModel):
     status: AppointmentStatus
     products_used: Optional[str]
     specific_request: Optional[str]
+    answers: Optional[List[dict]] = None
     created_at: datetime
     updated_at: datetime

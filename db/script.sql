@@ -15,7 +15,7 @@ CREATE TYPE user_role           AS ENUM ('client', 'provider');
 CREATE TYPE appointment_status  AS ENUM ('confirmed', 'cancelled', 'completed', 'pending', 'expired');
 CREATE TYPE payment_type        AS ENUM ('deposit', 'balance');
 CREATE TYPE payment_status      AS ENUM ('pending', 'validated', 'failed', 'refunded');
-CREATE TYPE availability_type   AS ENUM ('work', 'break');
+CREATE TYPE availability_type   AS ENUM ('work', 'break', 'booked');
 CREATE TYPE notification_type   AS ENUM ('confirmation', 'reminder', 'schedule_change');
 CREATE TYPE notification_status AS ENUM ('pending', 'sent', 'failed');
 CREATE TYPE recipient_type      AS ENUM ('client', 'provider');
@@ -174,6 +174,7 @@ CREATE TABLE appointment (
     status               appointment_status  NOT NULL DEFAULT 'pending',
     products_used        TEXT,
     specific_request     TEXT,
+    answers              JSONB,
     created_at           TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
 

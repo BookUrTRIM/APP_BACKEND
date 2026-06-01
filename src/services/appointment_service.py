@@ -21,6 +21,7 @@ from exceptions.payment_exceptions import PaymentFailed
 from exceptions.provider_exceptions import ProviderNotFound
 from mappers.appointment_mapper import AppointmentMapper
 from repositories.appointment_repository import AppointmentRepository
+from repositories.availability_repository import AvailabilityRepository
 from repositories.client_repository import ClientRepository
 from repositories.payment_repository import PaymentRepository
 from repositories.provider_repository import ProviderRepository
@@ -86,6 +87,8 @@ class AppointmentService:
 
         AppointmentService._assert_valid_transition(appointment.status, AppointmentStatus.CANCELLED)
         updated = AppointmentRepository.update(appointment_id, AppointmentUpdateDTO(status=AppointmentStatus.CANCELLED))
+        if appointment.status == AppointmentStatus.CONFIRMED:
+            AvailabilityRepository.delete_booked(appointment.provider_id, appointment.start_at)
         logger.info("RDV annulé par client : id=%d", appointment_id)
         return AppointmentMapper.model_to_dto(updated)
 
@@ -103,6 +106,8 @@ class AppointmentService:
 
         AppointmentService._assert_valid_transition(appointment.status, AppointmentStatus.CANCELLED)
         updated = AppointmentRepository.update(appointment_id, AppointmentUpdateDTO(status=AppointmentStatus.CANCELLED))
+        if appointment.status == AppointmentStatus.CONFIRMED:
+            AvailabilityRepository.delete_booked(appointment.provider_id, appointment.start_at)
 
         payment = PaymentRepository.get_validated_by_appointment(appointment_id)
         if payment and payment.stripe_charge_id:

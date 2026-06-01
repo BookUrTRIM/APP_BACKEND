@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from enums.appointment_enum import AppointmentStatus
 
@@ -17,6 +17,7 @@ class AppointmentModel:
 
     products_used: Optional[str]
     specific_request: Optional[str]
+    answers: Optional[List[dict]] = field(default=None)
 
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = field(default=None)
+    updated_at: datetime = field(default=None)
