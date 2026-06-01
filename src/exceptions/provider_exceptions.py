@@ -1,4 +1,4 @@
-from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError
+from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError, UnprocessableEntity
 
 
 # ========== RESSOURCES (404) ==========
@@ -30,4 +30,14 @@ class ProviderAlreadyExists(Conflict):
 class ProviderAccessDenied(Forbidden):
     """Erreur levée lorsqu'un utilisateur tente d'accéder au profil d'un autre prestataire."""
     def __init__(self, detail: str = "Accès refusé à ce profil prestataire."):
+        super().__init__(detail=detail)
+
+
+class StripeConnectNotConfigured(UnprocessableEntity):
+    def __init__(self, detail: str = "Ce prestataire n'a pas encore configuré son compte Stripe."):
+        super().__init__(detail=detail)
+
+
+class StripeConnectAlreadyExists(Conflict):
+    def __init__(self, detail: str = "Un compte Stripe Connect existe déjà pour ce prestataire."):
         super().__init__(detail=detail)

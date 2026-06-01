@@ -13,6 +13,7 @@ class ProviderModel:
     phone: Optional[str]
 
     google_calendar_token_enc: Optional[str]
+    stripe_account_id: Optional[str]
 
     created_at: datetime
     updated_at: datetime

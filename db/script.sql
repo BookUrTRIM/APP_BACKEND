@@ -89,6 +89,7 @@ CREATE TABLE provider (
     phone                       VARCHAR(20),
     -- token must be AES-256 encrypted by the application before storage
     google_calendar_token_enc   TEXT,
+    stripe_account_id           VARCHAR(255)    UNIQUE,
     created_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 

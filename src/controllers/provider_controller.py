@@ -66,3 +66,16 @@ def providers_availabilities(provider_id: int, date: Optional[date] = None):
 def providers_reviews(provider_id: int, page: int = 1, limit: int = 20):
     items, total = ReviewService.list_by_provider(provider_id, page=page, limit=limit)
     return {"items": items, "total": total, "page": page, "limit": limit}
+
+
+# ── Stripe Connect ─────────────────────────────────────────────────────────
+
+@providers_router.post("/me/stripe-connect", response_model=ProviderResponseDTO)
+def providers_stripe_connect_create(current_user: dict = Depends(get_current_user)):
+    return ProviderService.create_connect_account(int(current_user["sub"]))
+
+
+@providers_router.get("/me/stripe-connect/onboarding")
+def providers_stripe_connect_onboarding(current_user: dict = Depends(get_current_user)):
+    url = ProviderService.get_onboarding_link(int(current_user["sub"]))
+    return {"url": url}
