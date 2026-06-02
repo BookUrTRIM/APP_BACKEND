@@ -18,5 +18,6 @@ class AppointmentResponseDTO(BaseModel):
     products_used: Optional[str]
     specific_request: Optional[str]
     answers: Optional[List[dict]] = None
+    service_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime

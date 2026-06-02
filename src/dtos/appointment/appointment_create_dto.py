@@ -12,6 +12,7 @@ class AppointmentAnswerDTO(BaseModel):
 
 class AppointmentCreateDTO(BaseModel):
     provider_id:      int
+    service_id:       Optional[int]                    = None
     start_at:         datetime
     end_at:           datetime
     specific_request: Optional[str]                    = Field(None, max_length=2000)
