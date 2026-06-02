@@ -41,7 +41,9 @@ class AppointmentRepository:
                 ))
                 session.commit()
 
-        return AppointmentMapper.dao_to_model(dao)
+        model = AppointmentMapper.dao_to_model(dao)
+        model.service_name = AppointmentRepository._get_service_name(session, dao.id)
+        return model
 
     @staticmethod
     def update(appointment_id: int, dto: AppointmentUpdateDTO) -> Optional[AppointmentModel]:
@@ -59,7 +61,9 @@ class AppointmentRepository:
 
         session.commit()
         session.refresh(dao)
-        return AppointmentMapper.dao_to_model(dao)
+        model = AppointmentMapper.dao_to_model(dao)
+        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        return model
 
     @staticmethod
     def delete(appointment_id: int) -> bool:
@@ -78,7 +82,7 @@ class AppointmentRepository:
         return (
             session.query(AppointmentDAO)
             .where(AppointmentDAO.client_id == client_id)
-            .where(AppointmentDAO.status == AppointmentStatus.PENDING)
+            .where(AppointmentDAO.status == AppointmentStatus.PENDING.value)
             .count()
         )
 
@@ -87,9 +91,9 @@ class AppointmentRepository:
         session = get_db_session()
         result = session.execute(
             sa.update(AppointmentDAO)
-            .where(AppointmentDAO.status == AppointmentStatus.PENDING)
+            .where(AppointmentDAO.status == AppointmentStatus.PENDING.value)
             .where(AppointmentDAO.created_at < threshold)
-            .values(status=AppointmentStatus.EXPIRED)
+            .values(status=AppointmentStatus.EXPIRED.value)
         )
         session.commit()
         return result.rowcount
@@ -103,7 +107,9 @@ class AppointmentRepository:
         dao.status = status
         session.commit()
         session.refresh(dao)
-        return AppointmentMapper.dao_to_model(dao)
+        model = AppointmentMapper.dao_to_model(dao)
+        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        return model
 
     @staticmethod
     def _get_service_name(session, appointment_id: int) -> Optional[str]:

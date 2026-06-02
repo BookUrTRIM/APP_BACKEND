@@ -133,7 +133,7 @@ class PaymentRepository:
         dao = (
             session.query(PaymentDAO)
             .where(PaymentDAO.appointment_id == appointment_id)
-            .where(PaymentDAO.status == PaymentStatus.VALIDATED)
+            .where(PaymentDAO.status == PaymentStatus.VALIDATED.value)
             .first()
         )
         return PaymentMapper.dao_to_model(dao) if dao else None
