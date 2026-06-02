@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: Dashboard API
+  version: 1.0.0
+paths:
+  /api/dashboard/provider:
+    get:
+      summary: "Récupérer les métriques du tableau de bord"
+      description: "Retourne les KPIs et les statistiques mensuelles pour le prestataire connecté."
+      tags:
+        - Dashboard
+      parameters:
+        - name: period
+          in: query
+          description: "Période de filtrage (week, month, year, ou YYYY)"
+          required: false
+          schema:
+            type: string
+            default: month
+      responses:
+        '200':
+          description: "Données du dashboard formatées"
