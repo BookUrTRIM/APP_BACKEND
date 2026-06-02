@@ -5,7 +5,7 @@ class MonthlyStatDTO(BaseModel):
     month: str
     realized_revenue: float
     completed_appointments: int
-    cancellation_rate: float
+    cancelled_appointments: int
 
 class DashboardResponseDTO(BaseModel):
     booked_appointments: int
