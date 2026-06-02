@@ -18,6 +18,8 @@ class ProviderRepository:
             last_name=dto.last_name,
             first_name=dto.first_name,
             phone=dto.phone,
+            business_name=dto.business_name,
+            address=dto.address,
         )
         session.add(dao)
         session.commit()
@@ -37,6 +39,10 @@ class ProviderRepository:
             dao.first_name = dto.first_name
         if dto.phone is not None:
             dao.phone = dto.phone
+        if dto.business_name is not None:
+            dao.business_name = dto.business_name
+        if dto.address is not None:
+            dao.address = dto.address
 
         session.commit()
         session.refresh(dao)
