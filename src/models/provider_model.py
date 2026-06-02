@@ -11,6 +11,8 @@ class ProviderModel:
     last_name: str
     first_name: str
     phone: Optional[str]
+    business_name: Optional[str]
+    address: Optional[str]
 
     google_calendar_token_enc: Optional[str]
     stripe_account_id: Optional[str]

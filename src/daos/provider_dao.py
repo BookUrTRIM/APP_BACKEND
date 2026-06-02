@@ -24,6 +24,8 @@ class ProviderDAO(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     phone: Mapped[Optional[str]] = mapped_column(String(20))
+    business_name: Mapped[Optional[str]] = mapped_column(String(150))
+    address: Mapped[Optional[str]] = mapped_column(String(255))
 
     google_calendar_token_enc: Mapped[Optional[str]] = mapped_column(Text)
     stripe_account_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
