@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 
 import config
 from shared.db import init_db
+from controllers.dashboard_controller import dashboard_router
 from controllers.appointment_controller import appointments_router
 from controllers.auth_controller import auth_router
 from controllers.availability_controller import availabilities_router
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(appointments_router)
     app.include_router(payments_router)
     app.include_router(notifications_router)
+    app.include_router(dashboard_router)
 
     return app
 

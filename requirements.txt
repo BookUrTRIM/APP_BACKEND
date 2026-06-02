@@ -39,3 +39,4 @@ pytest~=8.3
 httpx~=0.28                  # requis par FastAPI TestClient
 
 psycopg2-binary~=2.9
+bcrypt~=4.2.1
