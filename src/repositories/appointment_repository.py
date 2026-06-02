@@ -4,6 +4,8 @@ from typing import List, Optional, Tuple
 import sqlalchemy as sa
 
 from daos.appointment_dao import AppointmentDAO
+from daos.appointment_service_dao import AppointmentServiceDAO
+from daos.service_dao import ServiceDAO
 from dtos.appointment.appointment_create_dto import AppointmentCreateDTO
 from dtos.appointment.appointment_update_dto import AppointmentUpdateDTO
 from enums.appointment_enum import AppointmentStatus
@@ -28,6 +30,17 @@ class AppointmentRepository:
         session.add(dao)
         session.commit()
         session.refresh(dao)
+
+        if dto.service_id:
+            service = session.get(ServiceDAO, dto.service_id)
+            if service:
+                session.add(AppointmentServiceDAO(
+                    appointment_id=dao.id,
+                    service_id=dto.service_id,
+                    billed_price=service.base_price,
+                ))
+                session.commit()
+
         return AppointmentMapper.dao_to_model(dao)
 
     @staticmethod
@@ -93,10 +106,24 @@ class AppointmentRepository:
         return AppointmentMapper.dao_to_model(dao)
 
     @staticmethod
+    def _get_service_name(session, appointment_id: int) -> Optional[str]:
+        result = (
+            session.query(ServiceDAO.name)
+            .join(AppointmentServiceDAO, AppointmentServiceDAO.service_id == ServiceDAO.id)
+            .where(AppointmentServiceDAO.appointment_id == appointment_id)
+            .first()
+        )
+        return result[0] if result else None
+
+    @staticmethod
     def get_by_id(appointment_id: int) -> Optional[AppointmentModel]:
         session = get_db_session()
         dao = session.get(AppointmentDAO, appointment_id)
-        return AppointmentMapper.dao_to_model(dao) if dao else None
+        if not dao:
+            return None
+        model = AppointmentMapper.dao_to_model(dao)
+        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        return model
 
     @staticmethod
     def list_by_client(
@@ -113,7 +140,12 @@ class AppointmentRepository:
 
         total = query.count()
         rows = query.order_by(AppointmentDAO.start_at.desc()).limit(limit).offset((page - 1) * limit).all()
-        return [AppointmentMapper.dao_to_model(row) for row in rows], total
+        models = []
+        for row in rows:
+            model = AppointmentMapper.dao_to_model(row)
+            model.service_name = AppointmentRepository._get_service_name(session, row.id)
+            models.append(model)
+        return models, total
 
     @staticmethod
     def list_by_provider(
@@ -130,4 +162,9 @@ class AppointmentRepository:
 
         total = query.count()
         rows = query.order_by(AppointmentDAO.start_at.desc()).limit(limit).offset((page - 1) * limit).all()
-        return [AppointmentMapper.dao_to_model(row) for row in rows], total
+        models = []
+        for row in rows:
+            model = AppointmentMapper.dao_to_model(row)
+            model.service_name = AppointmentRepository._get_service_name(session, row.id)
+            models.append(model)
+        return models, total
