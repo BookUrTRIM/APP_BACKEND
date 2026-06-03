@@ -30,6 +30,7 @@ class PaymentRepository:
         stripe_payment_intent_id: str,
         stripe_charge_id: str,
         metadata: Optional[dict[str, Any]] = None,
+        receipt_url: Optional[str] = None,
     ) -> Optional[PaymentModel]:
         session = get_db_session()
         dao = (
@@ -44,6 +45,7 @@ class PaymentRepository:
         dao.stripe_charge_id = stripe_charge_id
         dao.stripe_metadata = metadata
         dao.paid_at = datetime.now(timezone.utc)
+        dao.stripe_receipt_url = receipt_url
 
         session.commit()
         session.refresh(dao)

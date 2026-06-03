@@ -228,6 +228,7 @@ CREATE TABLE payment (
     stripe_payment_intent_id   VARCHAR(255),   -- pi_...  source of truth
     stripe_charge_id           VARCHAR(255),   -- ch_...  used for refunds
     stripe_metadata            JSONB,          -- free data from Stripe webhooks
+    stripe_receipt_url         VARCHAR(512),   -- URL du reçu Stripe (récupéré à la confirmation)
 
     CONSTRAINT fk_payment_appointment
         FOREIGN KEY (appointment_id) REFERENCES appointment (id)

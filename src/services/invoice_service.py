@@ -9,6 +9,7 @@ from mappers.invoice_mapper import InvoiceMapper
 from repositories.appointment_repository import AppointmentRepository
 from repositories.appointment_service_repository import AppointmentServiceRepository
 from repositories.invoice_repository import InvoiceRepository
+from repositories.payment_repository import PaymentRepository
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,12 @@ class InvoiceService:
         services = AppointmentServiceRepository.list_by_appointment(appointment_id)
         total_amount = sum(s.billed_price for s in services) or Decimal("0.00")
 
-        invoice = InvoiceRepository.create(appointment_id, total_amount)
+        receipt_url = None
+        validated_payment = PaymentRepository.get_validated_by_appointment(appointment_id)
+        if validated_payment:
+            receipt_url = validated_payment.stripe_receipt_url
+
+        invoice = InvoiceRepository.create(appointment_id, total_amount, receipt_url)
         logger.info("Facture générée : id=%d appointment_id=%d total=%s", invoice.id, invoice.appointment_id, total_amount)
         return InvoiceMapper.model_to_dto(invoice)
 
