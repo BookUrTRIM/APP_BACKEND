@@ -16,3 +16,7 @@ def auth_signup(dto: SignupDTO):
 @auth_router.post("/login")
 def auth_login(dto: LoginDTO):
     return AuthService.login(dto)
+
+@auth_router.get("/verify-email")
+def verify_email(token: str):
+    return AuthService.verify_email(token)

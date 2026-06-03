@@ -9,12 +9,21 @@ from shared.db import get_db_session
 
 class UserAccountRepository:
     @staticmethod
+    def activate_user(user_id: int) -> None:
+        session = get_db_session()
+        user = session.query(UserAccountDAO).filter(UserAccountDAO.id == user_id).first()
+        if user:
+            user.is_active = True
+            session.commit()
+
+    @staticmethod
     def create(dto: SignupDTO, password_hash: str) -> UserAccountModel:
         with get_db_session() as session:
             dao = UserAccountDAO(
                 email=dto.email,
                 password_hash=password_hash,
                 role=dto.role,
+                is_active=False
             )
             session.add(dao)
             session.commit()

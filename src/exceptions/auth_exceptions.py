@@ -1,3 +1,5 @@
+from fastapi import HTTPException,status
+
 from shared.base_exceptions import BadRequest, Unauthorized, Forbidden, NotFound, Conflict, InternalServerError
 
 
@@ -41,3 +43,10 @@ class InvalidPasswordFormat(BadRequest):
     """Erreur levée lorsque le mot de passe ne respecte pas les règles de complexité."""
     def __init__(self, detail: str = "Le mot de passe ne respecte pas les critères de sécurité."):
         super().__init__(detail=detail)
+
+class InvalidVerificationToken(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le lien de vérification est invalide ou a expiré."
+        )
