@@ -20,3 +20,4 @@ class PaymentResponseDTO(BaseModel):
     stripe_payment_intent_id: Optional[str]
     stripe_charge_id: Optional[str]
     stripe_metadata: Optional[dict[str, Any]]
+    stripe_receipt_url: Optional[str] = None

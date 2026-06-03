@@ -37,6 +37,7 @@ class PaymentDAO(Base):
     stripe_payment_intent_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
     stripe_charge_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True)
     stripe_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON)
+    stripe_receipt_url: Mapped[Optional[str]] = mapped_column(String(512))
 
     def __repr__(self) -> str:
         return (

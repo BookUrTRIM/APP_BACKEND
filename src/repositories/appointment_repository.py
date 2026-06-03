@@ -112,6 +112,22 @@ class AppointmentRepository:
         return model
 
     @staticmethod
+    def has_conflict(provider_id: int, start_at: datetime, end_at: datetime) -> bool:
+        session = get_db_session()
+        count = (
+            session.query(AppointmentDAO)
+            .where(AppointmentDAO.provider_id == provider_id)
+            .where(AppointmentDAO.status.in_([
+                AppointmentStatus.PENDING.value,
+                AppointmentStatus.CONFIRMED.value,
+            ]))
+            .where(AppointmentDAO.start_at < end_at)
+            .where(AppointmentDAO.end_at > start_at)
+            .count()
+        )
+        return count > 0
+
+    @staticmethod
     def _get_service_name(session, appointment_id: int) -> Optional[str]:
         result = (
             session.query(ServiceDAO.name)

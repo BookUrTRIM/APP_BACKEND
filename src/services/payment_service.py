@@ -113,7 +113,14 @@ class PaymentService:
         if payment.paid_at is not None:
             raise PaymentAlreadyProcessed()
 
-        confirmed = PaymentRepository.confirm(stripe_payment_intent_id, stripe_charge_id, metadata)
+        receipt_url = None
+        try:
+            charge = stripe.Charge.retrieve(stripe_charge_id)
+            receipt_url = charge.receipt_url
+        except stripe.StripeError as e:
+            logger.warning("Impossible de récupérer le receipt_url Stripe : %s", e)
+
+        confirmed = PaymentRepository.confirm(stripe_payment_intent_id, stripe_charge_id, metadata, receipt_url)
         if not confirmed:
             raise PaymentFailed()
 

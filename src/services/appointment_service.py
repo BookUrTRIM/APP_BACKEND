@@ -13,6 +13,7 @@ from exceptions.appointment_exceptions import (
     AppointmentAccessDenied,
     AppointmentAlreadyCancelled,
     AppointmentNotFound,
+    AppointmentSlotUnavailable,
     InvalidStatusTransition,
     TooManyPendingAppointments,
 )
@@ -49,6 +50,9 @@ class AppointmentService:
 
         if AppointmentRepository.count_pending_by_client(client.id) >= 2:
             raise TooManyPendingAppointments()
+
+        if AppointmentRepository.has_conflict(dto.provider_id, dto.start_at, dto.end_at):
+            raise AppointmentSlotUnavailable()
 
         appointment = AppointmentRepository.create(dto, client.id)
         logger.info("RDV créé : id=%d client_id=%d provider_id=%d", appointment.id, appointment.client_id, appointment.provider_id)
