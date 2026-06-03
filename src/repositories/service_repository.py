@@ -19,6 +19,7 @@ class ServiceRepository:
             description=dto.description,
             default_duration=dto.default_duration,
             base_price=dto.base_price,
+            deposit_amount=dto.deposit_amount,
         )
         session.add(dao)
         session.commit()
@@ -40,6 +41,8 @@ class ServiceRepository:
             dao.default_duration = dto.default_duration
         if dto.base_price is not None:
             dao.base_price = dto.base_price
+        if dto.deposit_amount is not None:
+            dao.deposit_amount = dto.deposit_amount
 
         session.commit()
         session.refresh(dao)

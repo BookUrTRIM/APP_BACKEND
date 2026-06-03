@@ -9,6 +9,7 @@ import pytest
 from enums.payment_enum import PaymentStatus, PaymentType
 from exceptions.payment_exceptions import (
     DepositAlreadyPaid,
+    InvalidPaymentAmount,
     NoValidatedPayment,
     PaymentFailed,
     PaymentNotFound,
@@ -206,3 +207,93 @@ class TestConfirmWebhook:
                 confirmed_payment.appointment_id,
                 AppointmentStatus.CONFIRMED
             )
+
+
+class TestInitiateAmountValidation:
+    def _make_appointment(self, deposit_amount=None, service_base_price=None):
+        appt = MagicMock()
+        appt.id = 10
+        appt.deposit_amount = deposit_amount
+        appt.service_base_price = service_base_price
+        return appt
+
+    def test_should_raise_when_deposit_amount_wrong(self):
+        from services.payment_service import PaymentService
+        from dtos.payment.payment_create_dto import PaymentCreateDTO
+
+        dto = PaymentCreateDTO(appointment_id=10, amount=Decimal("20.00"),
+                               currency="eur", payment_type=PaymentType.DEPOSIT)
+        with patch("services.payment_service.AppointmentRepository") as mock_appt, \
+             patch("services.payment_service.PaymentRepository") as mock_payment:
+            mock_appt.get_by_id.return_value = self._make_appointment(deposit_amount=Decimal("10.00"))
+            mock_payment.list_by_appointment.return_value = []
+
+            with pytest.raises(InvalidPaymentAmount):
+                PaymentService.initiate(dto)
+
+    def test_should_accept_correct_deposit_amount(self):
+        from services.payment_service import PaymentService
+        from dtos.payment.payment_create_dto import PaymentCreateDTO
+
+        dto = PaymentCreateDTO(appointment_id=10, amount=Decimal("10.00"),
+                               currency="eur", payment_type=PaymentType.DEPOSIT)
+        payment = _make_payment()
+        with patch("services.payment_service.AppointmentRepository") as mock_appt, \
+             patch("services.payment_service.PaymentRepository") as mock_payment, \
+             patch("services.payment_service.PaymentMapper") as mock_mapper:
+            mock_appt.get_by_id.return_value = self._make_appointment(deposit_amount=Decimal("10.00"))
+            mock_payment.list_by_appointment.return_value = []
+            mock_payment.create.return_value = payment
+            mock_mapper.model_to_dto.return_value = MagicMock()
+
+            PaymentService.initiate(dto)
+            mock_payment.create.assert_called_once()
+
+    def test_should_raise_when_balance_amount_wrong(self):
+        from services.payment_service import PaymentService
+        from dtos.payment.payment_create_dto import PaymentCreateDTO
+
+        dto = PaymentCreateDTO(appointment_id=10, amount=Decimal("30.00"),
+                               currency="eur", payment_type=PaymentType.BALANCE)
+        validated_deposit = _make_payment(status=PaymentStatus.VALIDATED,
+                                          payment_type=PaymentType.DEPOSIT)
+        validated_deposit.status = MagicMock()
+        validated_deposit.status.value = "validated"
+
+        with patch("services.payment_service.AppointmentRepository") as mock_appt, \
+             patch("services.payment_service.PaymentRepository") as mock_payment:
+            mock_appt.get_by_id.return_value = self._make_appointment(
+                deposit_amount=Decimal("10.00"),
+                service_base_price=65.00,
+            )
+            mock_payment.list_by_appointment.return_value = [validated_deposit]
+
+            with pytest.raises(InvalidPaymentAmount):
+                PaymentService.initiate(dto)
+
+    def test_should_accept_correct_balance_amount(self):
+        from services.payment_service import PaymentService
+        from dtos.payment.payment_create_dto import PaymentCreateDTO
+
+        # balance = 65 - 10 = 55
+        dto = PaymentCreateDTO(appointment_id=10, amount=Decimal("55.00"),
+                               currency="eur", payment_type=PaymentType.BALANCE)
+        validated_deposit = _make_payment(status=PaymentStatus.VALIDATED,
+                                          payment_type=PaymentType.DEPOSIT)
+        validated_deposit.status = MagicMock()
+        validated_deposit.status.value = "validated"
+        new_payment = _make_payment(id=2, payment_type=PaymentType.BALANCE)
+
+        with patch("services.payment_service.AppointmentRepository") as mock_appt, \
+             patch("services.payment_service.PaymentRepository") as mock_payment, \
+             patch("services.payment_service.PaymentMapper") as mock_mapper:
+            mock_appt.get_by_id.return_value = self._make_appointment(
+                deposit_amount=Decimal("10.00"),
+                service_base_price=65.00,
+            )
+            mock_payment.list_by_appointment.return_value = [validated_deposit]
+            mock_payment.create.return_value = new_payment
+            mock_mapper.model_to_dto.return_value = MagicMock()
+
+            PaymentService.initiate(dto)
+            mock_payment.create.assert_called_once()

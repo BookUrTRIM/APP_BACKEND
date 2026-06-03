@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
@@ -6,12 +6,14 @@ from dtos.appointment.appointment_create_dto import AppointmentCreateDTO
 from dtos.appointment.appointment_response_dto import AppointmentResponseDTO
 from dtos.appointment.appointment_update_dto import AppointmentUpdateDTO
 from dtos.invoice.invoice_response_dto import InvoiceResponseDTO
+from dtos.receipt.receipt_response_dto import ReceiptResponseDTO
 from dtos.review.review_create_dto import ReviewCreateDTO
 from dtos.review.review_response_dto import ReviewResponseDTO
 from enums.appointment_enum import AppointmentStatus
 from enums.user_enum import UserRole
 from services.appointment_service import AppointmentService
 from services.invoice_service import InvoiceService
+from services.receipt_service import ReceiptService
 from services.review_service import ReviewService
 from shared.dependencies import get_current_user
 
@@ -87,6 +89,13 @@ def appointments_cancel_by_client(appointment_id: int, current_user: dict = Depe
 @appointments_router.post("/{appointment_id}/cancel-by-provider", response_model=AppointmentResponseDTO)
 def appointments_cancel_by_provider(appointment_id: int, current_user: dict = Depends(get_current_user)):
     return AppointmentService.cancel_by_provider(appointment_id, int(current_user["sub"]))
+
+
+# ── Reçus ─────────────────────────────────────────────────────────────────
+
+@appointments_router.get("/{appointment_id}/receipts", response_model=List[ReceiptResponseDTO])
+def appointments_receipts_list(appointment_id: int, current_user: dict = Depends(get_current_user)):
+    return ReceiptService.list_by_appointment(appointment_id)
 
 
 # ── Facture ────────────────────────────────────────────────────────────────

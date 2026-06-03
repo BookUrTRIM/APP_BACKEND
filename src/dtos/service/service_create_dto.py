@@ -9,3 +9,4 @@ class ServiceCreateDTO(BaseModel):
     description: Optional[str] = Field(None, max_length=2000)
     default_duration: int = Field(gt=0, description="Duration in minutes")
     base_price: Decimal = Field(ge=0, decimal_places=2)
+    deposit_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)

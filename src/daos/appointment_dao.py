@@ -39,6 +39,7 @@ class AppointmentDAO(Base):
     products_used: Mapped[Optional[str]]  = mapped_column(Text)
     specific_request: Mapped[Optional[str]] = mapped_column(Text)
     answers: Mapped[Optional[list]]        = mapped_column(sa.JSON, nullable=True)
+    deposit_amount: Mapped[Optional[sa.Numeric]] = mapped_column(sa.Numeric(10, 2), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

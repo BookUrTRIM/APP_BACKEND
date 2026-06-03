@@ -46,6 +46,11 @@ class NoValidatedPayment(UnprocessableEntity):
         super().__init__(detail=detail)
 
 
+class InvalidPaymentAmount(BadRequest):
+    def __init__(self, detail: str = "Le montant ne correspond pas au solde attendu."):
+        super().__init__(detail=detail)
+
+
 # ========== ERREUR SERVEUR (500) ==========
 
 class PaymentFailed(InternalServerError):

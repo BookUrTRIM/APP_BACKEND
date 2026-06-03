@@ -69,7 +69,7 @@ class TestGenerate:
 
             result = InvoiceService.generate(appointment_id=10)
 
-            mock_invoice.create.assert_called_once_with(10, Decimal("0.00"))
+            mock_invoice.create.assert_called_once_with(10, Decimal("0.00"), None)
 
     def test_should_sum_billed_prices_when_services_exist(self):
         from services.invoice_service import InvoiceService
@@ -91,7 +91,56 @@ class TestGenerate:
 
             InvoiceService.generate(appointment_id=10)
 
-            mock_invoice.create.assert_called_once_with(10, Decimal("60.00"))
+            mock_invoice.create.assert_called_once_with(10, Decimal("60.00"), None)
+
+    def test_should_populate_pdf_url_from_stripe_receipt(self):
+        # Arrange
+        from services.invoice_service import InvoiceService
+
+        validated_payment = MagicMock()
+        validated_payment.stripe_receipt_url = "https://pay.stripe.com/receipts/test"
+
+        with patch("services.invoice_service.AppointmentRepository") as mock_appt, \
+             patch("services.invoice_service.InvoiceRepository") as mock_invoice, \
+             patch("services.invoice_service.AppointmentServiceRepository") as mock_appt_svc, \
+             patch("services.invoice_service.PaymentRepository") as mock_payment, \
+             patch("services.invoice_service.InvoiceMapper") as mock_mapper:
+            mock_appt.get_by_id.return_value = _make_appointment()
+            mock_invoice.get_by_appointment.return_value = None
+            mock_appt_svc.list_by_appointment.return_value = []
+            mock_payment.get_validated_by_appointment.return_value = validated_payment
+            mock_invoice.create.return_value = MagicMock()
+            mock_mapper.model_to_dto.return_value = MagicMock()
+
+            # Act
+            InvoiceService.generate(appointment_id=10)
+
+            # Assert — pdf_url = receipt_url du paiement validé
+            mock_invoice.create.assert_called_once_with(
+                10, Decimal("0.00"), "https://pay.stripe.com/receipts/test"
+            )
+
+    def test_should_generate_with_null_pdf_url_when_no_payment(self):
+        # Arrange
+        from services.invoice_service import InvoiceService
+
+        with patch("services.invoice_service.AppointmentRepository") as mock_appt, \
+             patch("services.invoice_service.InvoiceRepository") as mock_invoice, \
+             patch("services.invoice_service.AppointmentServiceRepository") as mock_appt_svc, \
+             patch("services.invoice_service.PaymentRepository") as mock_payment, \
+             patch("services.invoice_service.InvoiceMapper") as mock_mapper:
+            mock_appt.get_by_id.return_value = _make_appointment()
+            mock_invoice.get_by_appointment.return_value = None
+            mock_appt_svc.list_by_appointment.return_value = []
+            mock_payment.get_validated_by_appointment.return_value = None
+            mock_invoice.create.return_value = MagicMock()
+            mock_mapper.model_to_dto.return_value = MagicMock()
+
+            # Act
+            InvoiceService.generate(appointment_id=10)
+
+            # Assert — pdf_url = None si pas de paiement
+            mock_invoice.create.assert_called_once_with(10, Decimal("0.00"), None)
 
 
 class TestGetByAppointment:

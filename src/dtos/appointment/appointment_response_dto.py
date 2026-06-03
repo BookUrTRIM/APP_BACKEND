@@ -18,6 +18,8 @@ class AppointmentResponseDTO(BaseModel):
     products_used: Optional[str]
     specific_request: Optional[str]
     answers: Optional[List[dict]] = None
+    deposit_amount: Optional[float] = None
     service_name: Optional[str] = None
+    service_base_price: Optional[float] = None
     created_at: datetime
     updated_at: datetime

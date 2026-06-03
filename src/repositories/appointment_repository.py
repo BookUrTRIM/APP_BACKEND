@@ -39,10 +39,13 @@ class AppointmentRepository:
                     service_id=dto.service_id,
                     billed_price=service.base_price,
                 ))
+                if service.deposit_amount is not None:
+                    dao.deposit_amount = service.deposit_amount
                 session.commit()
+                session.refresh(dao)
 
         model = AppointmentMapper.dao_to_model(dao)
-        model.service_name = AppointmentRepository._get_service_name(session, dao.id)
+        model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, dao.id)
         return model
 
     @staticmethod
@@ -62,7 +65,7 @@ class AppointmentRepository:
         session.commit()
         session.refresh(dao)
         model = AppointmentMapper.dao_to_model(dao)
-        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, appointment_id)
         return model
 
     @staticmethod
@@ -108,7 +111,7 @@ class AppointmentRepository:
         session.commit()
         session.refresh(dao)
         model = AppointmentMapper.dao_to_model(dao)
-        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, appointment_id)
         return model
 
     @staticmethod
@@ -128,14 +131,16 @@ class AppointmentRepository:
         return count > 0
 
     @staticmethod
-    def _get_service_name(session, appointment_id: int) -> Optional[str]:
+    def _get_service_info(session, appointment_id: int) -> tuple:
         result = (
-            session.query(ServiceDAO.name)
+            session.query(ServiceDAO.name, ServiceDAO.base_price)
             .join(AppointmentServiceDAO, AppointmentServiceDAO.service_id == ServiceDAO.id)
             .where(AppointmentServiceDAO.appointment_id == appointment_id)
             .first()
         )
-        return result[0] if result else None
+        if result:
+            return result[0], float(result[1])
+        return None, None
 
     @staticmethod
     def get_by_id(appointment_id: int) -> Optional[AppointmentModel]:
@@ -144,7 +149,7 @@ class AppointmentRepository:
         if not dao:
             return None
         model = AppointmentMapper.dao_to_model(dao)
-        model.service_name = AppointmentRepository._get_service_name(session, appointment_id)
+        model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, appointment_id)
         return model
 
     @staticmethod
@@ -165,7 +170,7 @@ class AppointmentRepository:
         models = []
         for row in rows:
             model = AppointmentMapper.dao_to_model(row)
-            model.service_name = AppointmentRepository._get_service_name(session, row.id)
+            model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, row.id)
             models.append(model)
         return models, total
 
@@ -187,6 +192,6 @@ class AppointmentRepository:
         models = []
         for row in rows:
             model = AppointmentMapper.dao_to_model(row)
-            model.service_name = AppointmentRepository._get_service_name(session, row.id)
+            model.service_name, model.service_base_price = AppointmentRepository._get_service_info(session, row.id)
             models.append(model)
         return models, total

@@ -11,6 +11,7 @@ from exceptions.appointment_exceptions import AppointmentNotFound
 from enums.payment_enum import PaymentStatus, PaymentType
 from exceptions.payment_exceptions import (
     DepositAlreadyPaid,
+    InvalidPaymentAmount,
     NoValidatedPayment,
     PaymentAlreadyProcessed,
     PaymentFailed,
@@ -22,6 +23,7 @@ from repositories.availability_repository import AvailabilityRepository
 from repositories.client_repository import ClientRepository
 from repositories.payment_repository import PaymentRepository
 from repositories.provider_repository import ProviderRepository
+from repositories.receipt_repository import ReceiptRepository
 from repositories.user_account_repository import UserAccountRepository
 
 logger = logging.getLogger(__name__)
@@ -30,13 +32,29 @@ logger = logging.getLogger(__name__)
 class PaymentService:
     @staticmethod
     def initiate(dto: PaymentCreateDTO) -> PaymentResponseDTO:
-        if not AppointmentRepository.get_by_id(dto.appointment_id):
+        appointment = AppointmentRepository.get_by_id(dto.appointment_id)
+        if not appointment:
             raise AppointmentNotFound()
 
+        existing = PaymentRepository.list_by_appointment(dto.appointment_id)
+
         if dto.payment_type == PaymentType.DEPOSIT:
-            existing = PaymentRepository.list_by_appointment(dto.appointment_id)
             if any(p.payment_type == PaymentType.DEPOSIT for p in existing):
                 raise DepositAlreadyPaid()
+            if appointment.deposit_amount is not None:
+                if round(float(dto.amount), 2) != round(float(appointment.deposit_amount), 2):
+                    raise InvalidPaymentAmount(
+                        detail=f"L'acompte attendu est de {appointment.deposit_amount}."
+                    )
+
+        if dto.payment_type == PaymentType.BALANCE:
+            deposit = next((p for p in existing if p.payment_type == PaymentType.DEPOSIT and p.status.value == 'validated'), None)
+            if deposit and appointment.deposit_amount is not None and appointment.service_base_price is not None:
+                expected_balance = round(float(appointment.service_base_price) - float(appointment.deposit_amount), 2)
+                if round(float(dto.amount), 2) != expected_balance:
+                    raise InvalidPaymentAmount(
+                        detail=f"Le solde attendu est de {expected_balance}."
+                    )
 
         payment = PaymentRepository.create(dto)
         logger.info("Paiement initié : id=%d appointment_id=%d type=%s", payment.id, payment.appointment_id, payment.payment_type)
@@ -123,6 +141,9 @@ class PaymentService:
         confirmed = PaymentRepository.confirm(stripe_payment_intent_id, stripe_charge_id, metadata, receipt_url)
         if not confirmed:
             raise PaymentFailed()
+
+        ReceiptRepository.create(confirmed)
+        logger.info("Reçu créé : payment_id=%d type=%s", confirmed.id, confirmed.payment_type)
 
         if confirmed.payment_type == PaymentType.DEPOSIT:
             appointment = AppointmentRepository.update_status(confirmed.appointment_id, AppointmentStatus.CONFIRMED)

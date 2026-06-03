@@ -18,7 +18,9 @@ class AppointmentModel:
     products_used: Optional[str]
     specific_request: Optional[str]
     answers: Optional[List[dict]] = field(default=None)
+    deposit_amount: Optional[float] = field(default=None)
     service_name: Optional[str] = field(default=None)
+    service_base_price: Optional[float] = field(default=None)
 
     created_at: datetime = field(default=None)
     updated_at: datetime = field(default=None)
