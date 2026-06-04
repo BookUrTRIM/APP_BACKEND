@@ -2,13 +2,14 @@ import logging
 from typing import Any, List, Optional
 
 import stripe
+from sqlalchemy.orm import Session
 
 from dtos.payment.payment_create_dto import PaymentCreateDTO
 from dtos.payment.payment_intent_response_dto import PaymentIntentResponseDTO
 from dtos.payment.payment_response_dto import PaymentResponseDTO
 from enums.appointment_enum import AppointmentStatus
-from exceptions.appointment_exceptions import AppointmentNotFound
 from enums.payment_enum import PaymentStatus, PaymentType
+from exceptions.appointment_exceptions import AppointmentNotFound
 from exceptions.payment_exceptions import (
     DepositAlreadyPaid,
     InvalidPaymentAmount,
@@ -31,38 +32,35 @@ logger = logging.getLogger(__name__)
 
 class PaymentService:
     @staticmethod
-    def initiate(dto: PaymentCreateDTO) -> PaymentResponseDTO:
-        appointment = AppointmentRepository.get_by_id(dto.appointment_id)
+    def initiate(db: Session, dto: PaymentCreateDTO) -> PaymentResponseDTO:
+        appointment = AppointmentRepository.get_by_id(db, dto.appointment_id)
         if not appointment:
             raise AppointmentNotFound()
 
-        existing = PaymentRepository.list_by_appointment(dto.appointment_id)
+        existing = PaymentRepository.list_by_appointment(db, dto.appointment_id)
 
         if dto.payment_type == PaymentType.DEPOSIT:
             if any(p.payment_type == PaymentType.DEPOSIT for p in existing):
                 raise DepositAlreadyPaid()
             if appointment.deposit_amount is not None:
                 if round(float(dto.amount), 2) != round(float(appointment.deposit_amount), 2):
-                    raise InvalidPaymentAmount(
-                        detail=f"L'acompte attendu est de {appointment.deposit_amount}."
-                    )
+                    raise InvalidPaymentAmount(detail=f"L'acompte attendu est de {appointment.deposit_amount}.")
 
         if dto.payment_type == PaymentType.BALANCE:
             deposit = next((p for p in existing if p.payment_type == PaymentType.DEPOSIT and p.status.value == 'validated'), None)
             if deposit and appointment.deposit_amount is not None and appointment.service_base_price is not None:
                 expected_balance = round(float(appointment.service_base_price) - float(appointment.deposit_amount), 2)
                 if round(float(dto.amount), 2) != expected_balance:
-                    raise InvalidPaymentAmount(
-                        detail=f"Le solde attendu est de {expected_balance}."
-                    )
+                    raise InvalidPaymentAmount(detail=f"Le solde attendu est de {expected_balance}.")
 
-        payment = PaymentRepository.create(dto)
+        payment = PaymentRepository.create(db, dto)
+        db.commit()
         logger.info("Paiement initié : id=%d appointment_id=%d type=%s", payment.id, payment.appointment_id, payment.payment_type)
         return PaymentMapper.model_to_dto(payment)
 
     @staticmethod
-    def prepare(payment_id: int) -> PaymentIntentResponseDTO:
-        payment = PaymentRepository.get_by_id(payment_id)
+    def prepare(db: Session, payment_id: int) -> PaymentIntentResponseDTO:
+        payment = PaymentRepository.get_by_id(db, payment_id)
         if not payment:
             raise PaymentNotFound()
 
@@ -76,14 +74,14 @@ class PaymentService:
 
         receipt_email = None
         transfer_destination = None
-        appointment = AppointmentRepository.get_by_id(payment.appointment_id)
+        appointment = AppointmentRepository.get_by_id(db, payment.appointment_id)
         if appointment:
-            client = ClientRepository.get_by_id(appointment.client_id)
+            client = ClientRepository.get_by_id(db, appointment.client_id)
             if client:
-                user = UserAccountRepository.get_by_id(client.user_account_id)
+                user = UserAccountRepository.get_by_id(db, client.user_account_id)
                 if user:
                     receipt_email = user.email
-            provider = ProviderRepository.get_by_id(appointment.provider_id)
+            provider = ProviderRepository.get_by_id(db, appointment.provider_id)
             if provider and provider.stripe_account_id:
                 transfer_destination = provider.stripe_account_id
 
@@ -99,33 +97,32 @@ class PaymentService:
             logger.error("Échec création PaymentIntent Stripe : %s", e)
             raise PaymentFailed()
 
-        PaymentRepository.set_stripe_intent(payment_id, intent.id)
+        PaymentRepository.set_stripe_intent(db, payment_id, intent.id)
+        db.commit()
         logger.info("PaymentIntent créé : payment_id=%d pi=%s", payment_id, intent.id)
         return PaymentIntentResponseDTO(payment_id=payment_id, client_secret=intent.client_secret)
 
     @staticmethod
-    def refund_webhook(stripe_charge_id: str) -> None:
-        payment = PaymentRepository.get_by_stripe_charge(stripe_charge_id)
+    def refund_webhook(db: Session, stripe_charge_id: str) -> None:
+        payment = PaymentRepository.get_by_stripe_charge(db, stripe_charge_id)
         if not payment:
             raise PaymentNotFound()
-        PaymentRepository.refund(stripe_charge_id)
+        PaymentRepository.refund(db, stripe_charge_id)
+        db.commit()
         logger.info("Paiement remboursé : stripe_charge=%s", stripe_charge_id)
 
     @staticmethod
-    def fail_webhook(stripe_payment_intent_id: str) -> None:
-        payment = PaymentRepository.get_by_stripe_intent(stripe_payment_intent_id)
+    def fail_webhook(db: Session, stripe_payment_intent_id: str) -> None:
+        payment = PaymentRepository.get_by_stripe_intent(db, stripe_payment_intent_id)
         if not payment:
             raise PaymentNotFound()
-        PaymentRepository.fail(stripe_payment_intent_id)
+        PaymentRepository.fail(db, stripe_payment_intent_id)
+        db.commit()
         logger.info("Paiement échoué : stripe_pi=%s", stripe_payment_intent_id)
 
     @staticmethod
-    def confirm_webhook(
-        stripe_payment_intent_id: str,
-        stripe_charge_id: str,
-        metadata: Optional[dict[str, Any]] = None,
-    ) -> PaymentResponseDTO:
-        payment = PaymentRepository.get_by_stripe_intent(stripe_payment_intent_id)
+    def confirm_webhook(db: Session, stripe_payment_intent_id: str, stripe_charge_id: str, metadata: Optional[dict[str, Any]] = None) -> PaymentResponseDTO:
+        payment = PaymentRepository.get_by_stripe_intent(db, stripe_payment_intent_id)
         if not payment:
             raise PaymentNotFound()
         if payment.paid_at is not None:
@@ -138,23 +135,25 @@ class PaymentService:
         except stripe.StripeError as e:
             logger.warning("Impossible de récupérer le receipt_url Stripe : %s", e)
 
-        confirmed = PaymentRepository.confirm(stripe_payment_intent_id, stripe_charge_id, metadata, receipt_url)
+        confirmed = PaymentRepository.confirm(db, stripe_payment_intent_id, stripe_charge_id, metadata, receipt_url)
         if not confirmed:
             raise PaymentFailed()
 
-        ReceiptRepository.create(confirmed)
+        ReceiptRepository.create(db, confirmed)
         logger.info("Reçu créé : payment_id=%d type=%s", confirmed.id, confirmed.payment_type)
 
         if confirmed.payment_type == PaymentType.DEPOSIT:
-            appointment = AppointmentRepository.update_status(confirmed.appointment_id, AppointmentStatus.CONFIRMED)
+            appointment = AppointmentRepository.update_status(db, confirmed.appointment_id, AppointmentStatus.CONFIRMED)
             if appointment:
-                AvailabilityRepository.create_booked(appointment)
+                AvailabilityRepository.create_booked(db, appointment)
+
+        db.commit()
         logger.info("Paiement confirmé : stripe_pi=%s", stripe_payment_intent_id)
         return PaymentMapper.model_to_dto(confirmed)
 
     @staticmethod
-    def refund_by_appointment(appointment_id: int) -> PaymentResponseDTO:
-        payment = PaymentRepository.get_validated_by_appointment(appointment_id)
+    def refund_by_appointment(db: Session, appointment_id: int) -> PaymentResponseDTO:
+        payment = PaymentRepository.get_validated_by_appointment(db, appointment_id)
         if not payment:
             raise NoValidatedPayment()
 
@@ -164,19 +163,20 @@ class PaymentService:
             logger.error("Échec remboursement Stripe : %s", e)
             raise PaymentFailed()
 
-        refunded = PaymentRepository.update_status_by_id(payment.id, PaymentStatus.REFUNDED)
-        AppointmentRepository.update_status(appointment_id, AppointmentStatus.CANCELLED)
+        refunded = PaymentRepository.update_status_by_id(db, payment.id, PaymentStatus.REFUNDED)
+        AppointmentRepository.update_status(db, appointment_id, AppointmentStatus.CANCELLED)
+        db.commit()
         logger.info("Remboursement manuel : appointment_id=%d charge=%s", appointment_id, payment.stripe_charge_id)
         return PaymentMapper.model_to_dto(refunded)
 
     @staticmethod
-    def get(payment_id: int) -> PaymentResponseDTO:
-        payment = PaymentRepository.get_by_id(payment_id)
+    def get(db: Session, payment_id: int) -> PaymentResponseDTO:
+        payment = PaymentRepository.get_by_id(db, payment_id)
         if not payment:
             raise PaymentNotFound()
         return PaymentMapper.model_to_dto(payment)
 
     @staticmethod
-    def list_by_appointment(appointment_id: int) -> List[PaymentResponseDTO]:
-        payments = PaymentRepository.list_by_appointment(appointment_id)
+    def list_by_appointment(db: Session, appointment_id: int) -> List[PaymentResponseDTO]:
+        payments = PaymentRepository.list_by_appointment(db, appointment_id)
         return [PaymentMapper.model_to_dto(p) for p in payments]

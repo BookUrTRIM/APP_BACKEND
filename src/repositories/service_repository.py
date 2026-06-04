@@ -1,18 +1,17 @@
 from typing import List, Optional, Tuple
 
+from sqlalchemy.orm import Session
+
 from daos.service_dao import ServiceDAO
 from dtos.service.service_create_dto import ServiceCreateDTO
 from dtos.service.service_update_dto import ServiceUpdateDTO
 from mappers.service_mapper import ServiceMapper
 from models.service_model import ServiceModel
-from shared.db import get_db_session
 
 
 class ServiceRepository:
     @staticmethod
-    def create(dto: ServiceCreateDTO, provider_id: int) -> ServiceModel:
-        session = get_db_session()
-
+    def create(db: Session, dto: ServiceCreateDTO, provider_id: int) -> ServiceModel:
         dao = ServiceDAO(
             provider_id=provider_id,
             name=dto.name,
@@ -21,15 +20,14 @@ class ServiceRepository:
             base_price=dto.base_price,
             deposit_amount=dto.deposit_amount,
         )
-        session.add(dao)
-        session.commit()
-        session.refresh(dao)
+        db.add(dao)
+        db.flush()
+        db.refresh(dao)
         return ServiceMapper.dao_to_model(dao)
 
     @staticmethod
-    def update(service_id: int, dto: ServiceUpdateDTO) -> Optional[ServiceModel]:
-        session = get_db_session()
-        dao = session.get(ServiceDAO, service_id)
+    def update(db: Session, service_id: int, dto: ServiceUpdateDTO) -> Optional[ServiceModel]:
+        dao = db.get(ServiceDAO, service_id)
         if not dao:
             return None
 
@@ -44,32 +42,27 @@ class ServiceRepository:
         if dto.deposit_amount is not None:
             dao.deposit_amount = dto.deposit_amount
 
-        session.commit()
-        session.refresh(dao)
+        db.flush()
+        db.refresh(dao)
         return ServiceMapper.dao_to_model(dao)
 
     @staticmethod
-    def delete(service_id: int) -> bool:
-        session = get_db_session()
-        dao = session.get(ServiceDAO, service_id)
+    def delete(db: Session, service_id: int) -> bool:
+        dao = db.get(ServiceDAO, service_id)
         if not dao:
             return False
-
-        session.delete(dao)
-        session.commit()
+        db.delete(dao)
+        db.flush()
         return True
 
     @staticmethod
-    def get_by_id(service_id: int) -> Optional[ServiceModel]:
-        session = get_db_session()
-        dao = session.get(ServiceDAO, service_id)
+    def get_by_id(db: Session, service_id: int) -> Optional[ServiceModel]:
+        dao = db.get(ServiceDAO, service_id)
         return ServiceMapper.dao_to_model(dao) if dao else None
 
     @staticmethod
-    def list_by_provider(provider_id: int, page: int = 1, limit: int = 20) -> Tuple[List[ServiceModel], int]:
-        session = get_db_session()
-        query = session.query(ServiceDAO).where(ServiceDAO.provider_id == provider_id)
-
+    def list_by_provider(db: Session, provider_id: int, page: int = 1, limit: int = 20) -> Tuple[List[ServiceModel], int]:
+        query = db.query(ServiceDAO).where(ServiceDAO.provider_id == provider_id)
         total = query.count()
         rows = query.order_by(ServiceDAO.name).limit(limit).offset((page - 1) * limit).all()
         return [ServiceMapper.dao_to_model(row) for row in rows], total
