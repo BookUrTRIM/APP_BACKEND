@@ -1,6 +1,8 @@
 import logging
 from typing import List, Tuple
 
+from sqlalchemy.orm import Session
+
 from dtos.review.review_create_dto import ReviewCreateDTO
 from dtos.review.review_response_dto import ReviewResponseDTO
 from enums.appointment_enum import AppointmentStatus
@@ -17,36 +19,33 @@ logger = logging.getLogger(__name__)
 
 class ReviewService:
     @staticmethod
-    def create(user_account_id: int, dto: ReviewCreateDTO) -> ReviewResponseDTO:
-        appointment = AppointmentRepository.get_by_id(dto.appointment_id)
+    def create(db: Session, user_account_id: int, dto: ReviewCreateDTO) -> ReviewResponseDTO:
+        appointment = AppointmentRepository.get_by_id(db, dto.appointment_id)
         if not appointment:
             raise AppointmentNotFound()
         if appointment.status != AppointmentStatus.COMPLETED:
             raise AppointmentNotEligibleForReview()
 
-        client = ClientRepository.get_by_user_account_id(user_account_id)
+        client = ClientRepository.get_by_user_account_id(db, user_account_id)
         if not client or client.id != appointment.client_id:
             raise ReviewAccessDenied()
 
-        if ReviewRepository.get_by_appointment(dto.appointment_id):
+        if ReviewRepository.get_by_appointment(db, dto.appointment_id):
             raise ReviewAlreadyExists()
 
-        review = ReviewRepository.create(dto)
+        review = ReviewRepository.create(db, dto)
+        db.commit()
         logger.info("Avis créé : id=%d appointment_id=%d rating=%d", review.id, review.appointment_id, review.rating)
         return ReviewMapper.model_to_dto(review)
 
     @staticmethod
-    def get_by_appointment(appointment_id: int) -> ReviewResponseDTO:
-        review = ReviewRepository.get_by_appointment(appointment_id)
+    def get_by_appointment(db: Session, appointment_id: int) -> ReviewResponseDTO:
+        review = ReviewRepository.get_by_appointment(db, appointment_id)
         if not review:
             raise ReviewNotFound()
         return ReviewMapper.model_to_dto(review)
 
     @staticmethod
-    def list_by_provider(
-        provider_id: int,
-        page: int = 1,
-        limit: int = 20,
-    ) -> Tuple[List[ReviewResponseDTO], int]:
-        reviews, total = ReviewRepository.list_by_provider(provider_id, page=page, limit=limit)
+    def list_by_provider(db: Session, provider_id: int, page: int = 1, limit: int = 20) -> Tuple[List[ReviewResponseDTO], int]:
+        reviews, total = ReviewRepository.list_by_provider(db, provider_id, page=page, limit=limit)
         return [ReviewMapper.model_to_dto(r) for r in reviews], total

@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from typing import List, Optional
 
+from sqlalchemy.orm import Session
+
 from daos.availability_dao import AvailabilityDAO
 from dtos.availability.availability_create_dto import AvailabilityCreateDTO
 from dtos.availability.availability_update_dto import AvailabilityUpdateDTO
@@ -8,14 +10,11 @@ from enums.availability_enum import AvailabilityType
 from mappers.availability_mapper import AvailabilityMapper
 from models.appointment_model import AppointmentModel
 from models.availability_model import AvailabilityModel
-from shared.db import get_db_session
 
 
 class AvailabilityRepository:
     @staticmethod
-    def create(dto: AvailabilityCreateDTO, provider_id: int) -> AvailabilityModel:
-        session = get_db_session()
-
+    def create(db: Session, dto: AvailabilityCreateDTO, provider_id: int) -> AvailabilityModel:
         dao = AvailabilityDAO(
             provider_id=provider_id,
             day_date=dto.day_date,
@@ -23,14 +22,13 @@ class AvailabilityRepository:
             end_time=dto.end_time,
             slot_type=dto.slot_type,
         )
-        session.add(dao)
-        session.commit()
-        session.refresh(dao)
+        db.add(dao)
+        db.flush()
+        db.refresh(dao)
         return AvailabilityMapper.dao_to_model(dao)
 
     @staticmethod
-    def create_bulk(dtos: list[AvailabilityCreateDTO], provider_id: int) -> list[AvailabilityModel]:
-        session = get_db_session()
+    def create_bulk(db: Session, dtos: list[AvailabilityCreateDTO], provider_id: int) -> list[AvailabilityModel]:
         daos = [
             AvailabilityDAO(
                 provider_id=provider_id,
@@ -40,16 +38,15 @@ class AvailabilityRepository:
                 slot_type=dto.slot_type,
             ) for dto in dtos
         ]
-        session.add_all(daos)
-        session.commit()
+        db.add_all(daos)
+        db.flush()
         for dao in daos:
-            session.refresh(dao)
+            db.refresh(dao)
         return [AvailabilityMapper.dao_to_model(dao) for dao in daos]
 
     @staticmethod
-    def update(availability_id: int, dto: AvailabilityUpdateDTO) -> Optional[AvailabilityModel]:
-        session = get_db_session()
-        dao = session.get(AvailabilityDAO, availability_id)
+    def update(db: Session, availability_id: int, dto: AvailabilityUpdateDTO) -> Optional[AvailabilityModel]:
+        dao = db.get(AvailabilityDAO, availability_id)
         if not dao:
             return None
 
@@ -62,30 +59,26 @@ class AvailabilityRepository:
         if dto.slot_type is not None:
             dao.slot_type = dto.slot_type
 
-        session.commit()
-        session.refresh(dao)
+        db.flush()
+        db.refresh(dao)
         return AvailabilityMapper.dao_to_model(dao)
 
     @staticmethod
-    def delete(availability_id: int) -> bool:
-        session = get_db_session()
-        dao = session.get(AvailabilityDAO, availability_id)
+    def delete(db: Session, availability_id: int) -> bool:
+        dao = db.get(AvailabilityDAO, availability_id)
         if not dao:
             return False
-
-        session.delete(dao)
-        session.commit()
+        db.delete(dao)
+        db.flush()
         return True
 
     @staticmethod
-    def get_by_id(availability_id: int) -> Optional[AvailabilityModel]:
-        session = get_db_session()
-        dao = session.get(AvailabilityDAO, availability_id)
+    def get_by_id(db: Session, availability_id: int) -> Optional[AvailabilityModel]:
+        dao = db.get(AvailabilityDAO, availability_id)
         return AvailabilityMapper.dao_to_model(dao) if dao else None
 
     @staticmethod
-    def create_booked(appointment: AppointmentModel) -> None:
-        session = get_db_session()
+    def create_booked(db: Session, appointment: AppointmentModel) -> None:
         dao = AvailabilityDAO(
             provider_id=appointment.provider_id,
             day_date=appointment.start_at.date(),
@@ -93,14 +86,13 @@ class AvailabilityRepository:
             end_time=appointment.end_at.time(),
             slot_type=AvailabilityType.BOOKED,
         )
-        session.add(dao)
-        session.commit()
+        db.add(dao)
+        db.flush()
 
     @staticmethod
-    def delete_booked(provider_id: int, start_at: datetime) -> None:
-        session = get_db_session()
+    def delete_booked(db: Session, provider_id: int, start_at: datetime) -> None:
         dao = (
-            session.query(AvailabilityDAO)
+            db.query(AvailabilityDAO)
             .where(AvailabilityDAO.provider_id == provider_id)
             .where(AvailabilityDAO.day_date == start_at.date())
             .where(AvailabilityDAO.start_time == start_at.time())
@@ -108,16 +100,13 @@ class AvailabilityRepository:
             .first()
         )
         if dao:
-            session.delete(dao)
-            session.commit()
+            db.delete(dao)
+            db.flush()
 
     @staticmethod
-    def list_by_provider(provider_id: int, day_date: Optional[date] = None) -> List[AvailabilityModel]:
-        session = get_db_session()
-        query = session.query(AvailabilityDAO).where(AvailabilityDAO.provider_id == provider_id)
-
+    def list_by_provider(db: Session, provider_id: int, day_date: Optional[date] = None) -> List[AvailabilityModel]:
+        query = db.query(AvailabilityDAO).where(AvailabilityDAO.provider_id == provider_id)
         if day_date is not None:
             query = query.where(AvailabilityDAO.day_date == day_date)
-
         rows = query.order_by(AvailabilityDAO.day_date, AvailabilityDAO.start_time).all()
         return [AvailabilityMapper.dao_to_model(row) for row in rows]

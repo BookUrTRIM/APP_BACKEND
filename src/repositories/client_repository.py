@@ -1,18 +1,17 @@
 from typing import Optional
 
+from sqlalchemy.orm import Session
+
 from daos.client_dao import ClientDAO
 from dtos.client.client_create_dto import ClientCreateDTO
 from dtos.client.client_update_dto import ClientUpdateDTO
 from mappers.client_mapper import ClientMapper
 from models.client_model import ClientModel
-from shared.db import get_db_session
 
 
 class ClientRepository:
     @staticmethod
-    def create(dto: ClientCreateDTO, user_account_id: int) -> ClientModel:
-        session = get_db_session()
-
+    def create(db: Session, dto: ClientCreateDTO, user_account_id: int) -> ClientModel:
         dao = ClientDAO(
             user_account_id=user_account_id,
             last_name=dto.last_name,
@@ -23,15 +22,14 @@ class ClientRepository:
             hair_type=dto.hair_type,
             history_preferences=dto.history_preferences,
         )
-        session.add(dao)
-        session.commit()
-        session.refresh(dao)
+        db.add(dao)
+        db.flush()
+        db.refresh(dao)
         return ClientMapper.dao_to_model(dao)
 
     @staticmethod
-    def update(client_id: int, dto: ClientUpdateDTO) -> Optional[ClientModel]:
-        session = get_db_session()
-        dao = session.get(ClientDAO, client_id)
+    def update(db: Session, client_id: int, dto: ClientUpdateDTO) -> Optional[ClientModel]:
+        dao = db.get(ClientDAO, client_id)
         if not dao:
             return None
 
@@ -50,18 +48,16 @@ class ClientRepository:
         if dto.history_preferences is not None:
             dao.history_preferences = dto.history_preferences
 
-        session.commit()
-        session.refresh(dao)
+        db.flush()
+        db.refresh(dao)
         return ClientMapper.dao_to_model(dao)
 
     @staticmethod
-    def get_by_id(client_id: int) -> Optional[ClientModel]:
-        session = get_db_session()
-        dao = session.get(ClientDAO, client_id)
+    def get_by_id(db: Session, client_id: int) -> Optional[ClientModel]:
+        dao = db.get(ClientDAO, client_id)
         return ClientMapper.dao_to_model(dao) if dao else None
 
     @staticmethod
-    def get_by_user_account_id(user_account_id: int) -> Optional[ClientModel]:
-        session = get_db_session()
-        dao = session.query(ClientDAO).where(ClientDAO.user_account_id == user_account_id).first()
+    def get_by_user_account_id(db: Session, user_account_id: int) -> Optional[ClientModel]:
+        dao = db.query(ClientDAO).where(ClientDAO.user_account_id == user_account_id).first()
         return ClientMapper.dao_to_model(dao) if dao else None

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
+from sqlalchemy.orm import Session
 
 import config
 from dtos.auth.login_dto import LoginDTO
@@ -23,34 +24,37 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     @staticmethod
-    def signup(dto: SignupDTO) -> UserAccountResponseDTO:
-        if UserAccountRepository.get_by_email(dto.email):
+    def signup(db: Session, dto: SignupDTO) -> UserAccountResponseDTO:
+        if UserAccountRepository.get_by_email(db, dto.email):
             raise EmailAlreadyExists()
 
         password_hash = bcrypt.hashpw(dto.password.encode(), bcrypt.gensalt()).decode()
-        account = UserAccountRepository.create(dto, password_hash)
+        account = UserAccountRepository.create(db, dto, password_hash)
 
-        AuthService._create_profile(account.id, dto)
+        AuthService._create_profile(db, account.id, dto)
 
+        db.commit()
         logger.info("Nouveau compte créé : id=%d role=%s", account.id, account.role)
         return UserAccountMapper.model_to_dto(account)
 
     @staticmethod
-    def _create_profile(user_account_id: int, dto: SignupDTO) -> None:
+    def _create_profile(db: Session, user_account_id: int, dto: SignupDTO) -> None:
         if dto.role == UserRole.CLIENT:
             ClientRepository.create(
+                db,
                 ClientCreateDTO(first_name=dto.first_name, last_name=dto.last_name, phone=dto.phone),
                 user_account_id,
             )
         elif dto.role == UserRole.PROVIDER:
             ProviderRepository.create(
+                db,
                 ProviderCreateDTO(first_name=dto.first_name, last_name=dto.last_name, phone=dto.phone),
                 user_account_id,
             )
 
     @staticmethod
-    def login(dto: LoginDTO) -> dict:
-        account = UserAccountRepository.get_by_email(dto.email)
+    def login(db: Session, dto: LoginDTO) -> dict:
+        account = UserAccountRepository.get_by_email(db, dto.email)
         if not account or not bcrypt.checkpw(dto.password.encode(), account.password_hash.encode()):
             raise InvalidCredentials()
         if not account.is_active:
