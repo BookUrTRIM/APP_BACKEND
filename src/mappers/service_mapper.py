@@ -13,6 +13,7 @@ class ServiceMapper:
             description=dao.description,
             default_duration=dao.default_duration,
             base_price=dao.base_price,
+            deposit_amount=dao.deposit_amount,
             created_at=dao.created_at,
             updated_at=dao.updated_at,
         )
@@ -26,6 +27,7 @@ class ServiceMapper:
             description=model.description,
             default_duration=model.default_duration,
             base_price=model.base_price,
+            deposit_amount=model.deposit_amount,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

@@ -14,5 +14,6 @@ class ServiceResponseDTO(BaseModel):
     description: Optional[str]
     default_duration: int
     base_price: Decimal
+    deposit_amount: Optional[Decimal] = None
     created_at: datetime
     updated_at: datetime

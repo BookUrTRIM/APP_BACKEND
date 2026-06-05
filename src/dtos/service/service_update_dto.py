@@ -9,3 +9,4 @@ class ServiceUpdateDTO(BaseModel):
     description: Optional[str] = Field(None, max_length=2000)
     default_duration: Optional[int] = Field(None, gt=0)
     base_price: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
+    deposit_amount: Optional[Decimal] = Field(None, ge=0, decimal_places=2)

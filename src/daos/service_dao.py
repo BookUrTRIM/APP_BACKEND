@@ -25,6 +25,7 @@ class ServiceDAO(Base):
 
     default_duration: Mapped[int] = mapped_column(Integer, nullable=False)
     base_price: Mapped[sa.Numeric] = mapped_column(Numeric(10, 2), nullable=False)
+    deposit_amount: Mapped[Optional[sa.Numeric]] = mapped_column(Numeric(10, 2), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

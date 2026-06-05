@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy.orm import Session
+
 from dtos.service.duration_calculate_dto import DurationCalculateDTO
 from dtos.service.duration_response_dto import DurationResponseDTO
 from dtos.service.service_question_create_dto import ServiceQuestionCreateDTO
@@ -18,67 +20,62 @@ logger = logging.getLogger(__name__)
 
 class ServiceQuestionService:
     @staticmethod
-    def list(service_id: int) -> List[ServiceQuestionResponseDTO]:
-        if not ServiceRepository.get_by_id(service_id):
+    def list(db: Session, service_id: int) -> List[ServiceQuestionResponseDTO]:
+        if not ServiceRepository.get_by_id(db, service_id):
             raise ServiceNotFound()
-        questions = ServiceQuestionRepository.list_by_service(service_id)
+        questions = ServiceQuestionRepository.list_by_service(db, service_id)
         return [ServiceQuestionMapper.model_to_dto(q) for q in questions]
 
     @staticmethod
-    def create(service_id: int, user_account_id: int, dto: ServiceQuestionCreateDTO) -> ServiceQuestionResponseDTO:
-        service = ServiceRepository.get_by_id(service_id)
+    def create(db: Session, service_id: int, user_account_id: int, dto: ServiceQuestionCreateDTO) -> ServiceQuestionResponseDTO:
+        service = ServiceRepository.get_by_id(db, service_id)
         if not service:
             raise ServiceNotFound()
-
-        provider = ProviderRepository.get_by_user_account_id(user_account_id)
+        provider = ProviderRepository.get_by_user_account_id(db, user_account_id)
         if not provider or provider.id != service.provider_id:
             raise ServiceAccessDenied()
-
-        question = ServiceQuestionRepository.create(service_id, dto)
+        question = ServiceQuestionRepository.create(db, service_id, dto)
+        db.commit()
         logger.info("Question créée : id=%d service_id=%d", question.id, service_id)
         return ServiceQuestionMapper.model_to_dto(question)
 
     @staticmethod
-    def update(question_id: int, user_account_id: int, dto: ServiceQuestionUpdateDTO) -> ServiceQuestionResponseDTO:
-        question = ServiceQuestionRepository.get_by_id(question_id)
+    def update(db: Session, question_id: int, user_account_id: int, dto: ServiceQuestionUpdateDTO) -> ServiceQuestionResponseDTO:
+        question = ServiceQuestionRepository.get_by_id(db, question_id)
         if not question:
             raise ServiceQuestionNotFound()
-
-        service = ServiceRepository.get_by_id(question.service_id)
-        provider = ProviderRepository.get_by_user_account_id(user_account_id)
+        service = ServiceRepository.get_by_id(db, question.service_id)
+        provider = ProviderRepository.get_by_user_account_id(db, user_account_id)
         if not provider or not service or provider.id != service.provider_id:
             raise ServiceAccessDenied()
-
-        updated = ServiceQuestionRepository.update(question_id, dto)
+        updated = ServiceQuestionRepository.update(db, question_id, dto)
+        db.commit()
         return ServiceQuestionMapper.model_to_dto(updated)
 
     @staticmethod
-    def delete(question_id: int, user_account_id: int) -> None:
-        question = ServiceQuestionRepository.get_by_id(question_id)
+    def delete(db: Session, question_id: int, user_account_id: int) -> None:
+        question = ServiceQuestionRepository.get_by_id(db, question_id)
         if not question:
             raise ServiceQuestionNotFound()
-
-        service = ServiceRepository.get_by_id(question.service_id)
-        provider = ProviderRepository.get_by_user_account_id(user_account_id)
+        service = ServiceRepository.get_by_id(db, question.service_id)
+        provider = ProviderRepository.get_by_user_account_id(db, user_account_id)
         if not provider or not service or provider.id != service.provider_id:
             raise ServiceAccessDenied()
-
-        ServiceQuestionRepository.delete(question_id)
+        ServiceQuestionRepository.delete(db, question_id)
+        db.commit()
         logger.info("Question supprimée : id=%d", question_id)
 
     @staticmethod
-    def calculate_duration(service_id: int, dto: DurationCalculateDTO) -> DurationResponseDTO:
-        service = ServiceRepository.get_by_id(service_id)
+    def calculate_duration(db: Session, service_id: int, dto: DurationCalculateDTO) -> DurationResponseDTO:
+        service = ServiceRepository.get_by_id(db, service_id)
         if not service:
             raise ServiceNotFound()
-
         duration = service.default_duration
         for answer in dto.answers:
-            question = ServiceQuestionRepository.get_by_id(answer.question_id)
+            question = ServiceQuestionRepository.get_by_id(db, answer.question_id)
             if not question:
                 raise ServiceQuestionNotFound()
             if answer.option_index >= len(question.options):
                 raise ServiceQuestionIndexError()
             duration += question.options[answer.option_index]["extra_minutes"]
-
         return DurationResponseDTO(duration=duration)

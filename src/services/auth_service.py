@@ -28,6 +28,7 @@ class AuthService:
     def signup(db: Session, dto: SignupDTO) -> UserAccountResponseDTO:
         if UserAccountRepository.get_by_email(db, dto.email):
             raise EmailAlreadyExists()
+
         password_hash = bcrypt.hashpw(dto.password.encode(), bcrypt.gensalt()).decode()
         account = UserAccountRepository.create(db, dto, password_hash)
         AuthService._create_profile(db, account.id, dto)
@@ -67,6 +68,7 @@ class AuthService:
             raise InvalidCredentials()
         if not account.is_active:
             raise UserAccountDeactivated()
+
         token = jwt.encode(
             {
                 "sub": str(account.id),

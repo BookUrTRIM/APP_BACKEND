@@ -112,6 +112,7 @@ CREATE TABLE service (
     description          TEXT,
     default_duration     INT             NOT NULL CHECK (default_duration > 0),  -- minutes
     base_price           DECIMAL(10,2)   NOT NULL CHECK (base_price >= 0),
+    deposit_amount       DECIMAL(10,2)   CHECK (deposit_amount >= 0 AND deposit_amount < base_price),
     created_at           TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 
@@ -178,6 +179,7 @@ CREATE TABLE appointment (
     products_used        TEXT,
     specific_request     TEXT,
     answers              JSONB,
+    deposit_amount       DECIMAL(10,2),
     created_at           TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
 
@@ -254,6 +256,32 @@ CREATE TABLE invoice (
         FOREIGN KEY (appointment_id) REFERENCES appointment (id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+-- ────────────────────────────────────────────────────────────
+--  TABLE : receipt
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE receipt (
+    id                   BIGSERIAL       PRIMARY KEY,
+    payment_id           BIGINT          NOT NULL,
+    appointment_id       BIGINT          NOT NULL,
+    amount               DECIMAL(10,2)   NOT NULL CHECK (amount > 0),
+    currency             CHAR(3)         NOT NULL DEFAULT 'eur',
+    payment_type         VARCHAR(20)     NOT NULL,
+    issued_at            TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    stripe_receipt_url   VARCHAR(512),
+
+    CONSTRAINT uq_receipt_payment UNIQUE (payment_id),
+
+    CONSTRAINT fk_receipt_payment
+        FOREIGN KEY (payment_id) REFERENCES payment (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+
+    CONSTRAINT fk_receipt_appointment
+        FOREIGN KEY (appointment_id) REFERENCES appointment (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+CREATE INDEX idx_receipt_appointment ON receipt (appointment_id);
 
 -- ────────────────────────────────────────────────────────────
 --  TABLE : review
