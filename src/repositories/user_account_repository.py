@@ -15,6 +15,7 @@ class UserAccountRepository:
             email=dto.email,
             password_hash=password_hash,
             role=dto.role,
+            is_active=False
         )
         db.add(dao)
         db.flush()
@@ -40,3 +41,7 @@ class UserAccountRepository:
         db.flush()
         db.refresh(dao)
         return UserAccountMapper.dao_to_model(dao)
+
+    @staticmethod
+    def activate_user(db: Session, user_id: int) -> None:
+        UserAccountRepository.set_active(db, user_id, True)

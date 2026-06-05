@@ -34,3 +34,8 @@ CORS_ORIGINS: list[str] = (
     ["*"] if _cors_raw.strip() == "*"
     else [o.strip() for o in _cors_raw.split(",")]
 )
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.mailtrap.io")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")

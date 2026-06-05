@@ -18,3 +18,8 @@ def auth_signup(dto: SignupDTO, db: Session = Depends(get_db)):
 @auth_router.post("/login")
 def auth_login(dto: LoginDTO, db: Session = Depends(get_db)):
     return AuthService.login(db, dto)
+
+
+@auth_router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    return AuthService.verify_email(db, token)
