@@ -9,6 +9,7 @@ import config
 from dtos.payment.payment_create_dto import PaymentCreateDTO
 from dtos.payment.payment_intent_response_dto import PaymentIntentResponseDTO
 from dtos.payment.payment_response_dto import PaymentResponseDTO
+from enums.user_enum import UserRole
 from services.payment_service import PaymentService
 from shared.db import get_db
 from shared.dependencies import get_current_user
@@ -19,27 +20,27 @@ logger = logging.getLogger(__name__)
 
 @payments_router.post("", status_code=201, response_model=PaymentResponseDTO)
 def payments_create(dto: PaymentCreateDTO, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> PaymentResponseDTO:
-    return PaymentService.initiate(db, dto)
+    return PaymentService.initiate(db, dto, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @payments_router.get("/{payment_id}", response_model=PaymentResponseDTO)
 def payments_show(payment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> PaymentResponseDTO:
-    return PaymentService.get(db, payment_id)
+    return PaymentService.get(db, payment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @payments_router.get("/appointment/{appointment_id}", response_model=List[PaymentResponseDTO])
 def payments_by_appointment(appointment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> List[PaymentResponseDTO]:
-    return PaymentService.list_by_appointment(db, appointment_id)
+    return PaymentService.list_by_appointment(db, appointment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @payments_router.post("/{payment_id}/prepare", response_model=PaymentIntentResponseDTO)
 def payments_prepare(payment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> PaymentIntentResponseDTO:
-    return PaymentService.prepare(db, payment_id)
+    return PaymentService.prepare(db, payment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @payments_router.post("/appointment/{appointment_id}/refund", response_model=PaymentResponseDTO)
 def payments_refund_by_appointment(appointment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> PaymentResponseDTO:
-    return PaymentService.refund_by_appointment(db, appointment_id)
+    return PaymentService.refund_by_appointment(db, appointment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @payments_router.post("/webhook")

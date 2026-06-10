@@ -66,7 +66,7 @@ class AppointmentService:
         if not appointment:
             raise AppointmentNotFound()
 
-        AppointmentService._assert_access(db, appointment, user_account_id, current_role)
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
 
         if dto.status is not None:
             AppointmentService._assert_valid_transition(appointment.status, dto.status)
@@ -163,7 +163,7 @@ class AppointmentService:
         if appointment.status == AppointmentStatus.CANCELLED:
             raise AppointmentAlreadyCancelled()
 
-        AppointmentService._assert_access(db, appointment, user_account_id, current_role)
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
         AppointmentService._assert_valid_transition(appointment.status, AppointmentStatus.CANCELLED)
 
         updated = AppointmentRepository.update(db, appointment_id, AppointmentUpdateDTO(status=AppointmentStatus.CANCELLED))
@@ -176,7 +176,7 @@ class AppointmentService:
         appointment = AppointmentRepository.get_by_id(db, appointment_id)
         if not appointment:
             raise AppointmentNotFound()
-        AppointmentService._assert_access(db, appointment, user_account_id, current_role)
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
         return AppointmentMapper.model_to_dto(appointment)
 
     @staticmethod
@@ -196,7 +196,7 @@ class AppointmentService:
         return [AppointmentMapper.model_to_dto(a) for a in appointments], total
 
     @staticmethod
-    def _assert_access(db: Session, appointment, user_account_id: int, current_role: UserRole) -> None:
+    def assert_access(db: Session, appointment, user_account_id: int, current_role: UserRole) -> None:
         client = ClientRepository.get_by_id(db, appointment.client_id)
         provider = ProviderRepository.get_by_id(db, appointment.provider_id)
 

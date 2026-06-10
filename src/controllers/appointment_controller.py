@@ -85,19 +85,19 @@ def appointments_cancel_by_provider(appointment_id: int, current_user: dict = De
 
 @appointments_router.get("/{appointment_id}/receipts", response_model=List[ReceiptResponseDTO])
 def appointments_receipts_list(appointment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> List[ReceiptResponseDTO]:
-    return ReceiptService.list_by_appointment(db, appointment_id)
+    return ReceiptService.list_by_appointment(db, appointment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 # ── Facture ────────────────────────────────────────────────────────────────
 
 @appointments_router.post("/{appointment_id}/invoice", status_code=201, response_model=InvoiceResponseDTO)
 def appointments_invoice_generate(appointment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> InvoiceResponseDTO:
-    return InvoiceService.generate(db, appointment_id)
+    return InvoiceService.generate(db, appointment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 @appointments_router.get("/{appointment_id}/invoice", response_model=InvoiceResponseDTO)
 def appointments_invoice_show(appointment_id: int, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)) -> InvoiceResponseDTO:
-    return InvoiceService.get_by_appointment(db, appointment_id)
+    return InvoiceService.get_by_appointment(db, appointment_id, int(current_user["sub"]), UserRole(current_user["role"]))
 
 
 # ── Avis ───────────────────────────────────────────────────────────────────
