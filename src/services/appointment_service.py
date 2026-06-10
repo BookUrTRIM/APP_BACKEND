@@ -148,7 +148,7 @@ class AppointmentService:
         db.commit()
 
         try:
-            InvoiceService.generate(db, appointment_id)
+            InvoiceService.generate(db, appointment_id, user_account_id, UserRole.PROVIDER)
         except InvoiceAlreadyExists:
             pass
 
