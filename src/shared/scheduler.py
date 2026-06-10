@@ -8,21 +8,17 @@ _scheduler = BackgroundScheduler()
 
 
 def _expire_pending_appointments() -> None:
-    from shared.db import SessionLocal
+    from shared.db import db_session
     from repositories.appointment_repository import AppointmentRepository
 
-    db = SessionLocal()
     try:
-        threshold = datetime.now(timezone.utc) - timedelta(minutes=15)
-        count = AppointmentRepository.expire_old_pending(db, threshold)
-        db.commit()
-        if count:
-            logger.info("Expiration automatique : %d rendez-vous passés en expired", count)
+        with db_session() as db:
+            threshold = datetime.now(timezone.utc) - timedelta(minutes=15)
+            count = AppointmentRepository.expire_old_pending(db, threshold)
+            if count:
+                logger.info("Expiration automatique : %d rendez-vous passés en expired", count)
     except Exception:
-        db.rollback()
         logger.exception("Erreur lors de l'expiration des RDV")
-    finally:
-        db.close()
 
 
 def start_scheduler() -> None:

@@ -1,5 +1,6 @@
 import os
-from typing import Generator
+from contextlib import contextmanager
+from typing import Generator, Iterator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -29,8 +30,17 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def get_db_session() -> Session:
-    return SessionLocal()
+@contextmanager
+def db_session() -> Iterator[Session]:
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 def init_db() -> None:
