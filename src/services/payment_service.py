@@ -9,6 +9,7 @@ from dtos.payment.payment_intent_response_dto import PaymentIntentResponseDTO
 from dtos.payment.payment_response_dto import PaymentResponseDTO
 from enums.appointment_enum import AppointmentStatus
 from enums.payment_enum import PaymentStatus, PaymentType
+from enums.user_enum import UserRole
 from exceptions.appointment_exceptions import AppointmentNotFound
 from exceptions.payment_exceptions import (
     DepositAlreadyPaid,
@@ -26,16 +27,19 @@ from repositories.payment_repository import PaymentRepository
 from repositories.provider_repository import ProviderRepository
 from repositories.receipt_repository import ReceiptRepository
 from repositories.user_account_repository import UserAccountRepository
+from services.appointment_service import AppointmentService
 
 logger = logging.getLogger(__name__)
 
 
 class PaymentService:
     @staticmethod
-    def initiate(db: Session, dto: PaymentCreateDTO) -> PaymentResponseDTO:
+    def initiate(db: Session, dto: PaymentCreateDTO, user_account_id: int, current_role: UserRole) -> PaymentResponseDTO:
         appointment = AppointmentRepository.get_by_id(db, dto.appointment_id)
         if not appointment:
             raise AppointmentNotFound()
+
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
 
         existing = PaymentRepository.list_by_appointment(db, dto.appointment_id)
 
@@ -59,10 +63,15 @@ class PaymentService:
         return PaymentMapper.model_to_dto(payment)
 
     @staticmethod
-    def prepare(db: Session, payment_id: int) -> PaymentIntentResponseDTO:
+    def prepare(db: Session, payment_id: int, user_account_id: int, current_role: UserRole) -> PaymentIntentResponseDTO:
         payment = PaymentRepository.get_by_id(db, payment_id)
         if not payment:
             raise PaymentNotFound()
+
+        appointment = AppointmentRepository.get_by_id(db, payment.appointment_id)
+        if not appointment:
+            raise AppointmentNotFound()
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
 
         if payment.stripe_payment_intent_id:
             try:
@@ -74,7 +83,6 @@ class PaymentService:
 
         receipt_email = None
         transfer_destination = None
-        appointment = AppointmentRepository.get_by_id(db, payment.appointment_id)
         if appointment:
             client = ClientRepository.get_by_id(db, appointment.client_id)
             if client:
@@ -152,7 +160,12 @@ class PaymentService:
         return PaymentMapper.model_to_dto(confirmed)
 
     @staticmethod
-    def refund_by_appointment(db: Session, appointment_id: int) -> PaymentResponseDTO:
+    def refund_by_appointment(db: Session, appointment_id: int, user_account_id: int, current_role: UserRole) -> PaymentResponseDTO:
+        appointment = AppointmentRepository.get_by_id(db, appointment_id)
+        if not appointment:
+            raise AppointmentNotFound()
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
+
         payment = PaymentRepository.get_validated_by_appointment(db, appointment_id)
         if not payment:
             raise NoValidatedPayment()
@@ -170,13 +183,24 @@ class PaymentService:
         return PaymentMapper.model_to_dto(refunded)
 
     @staticmethod
-    def get(db: Session, payment_id: int) -> PaymentResponseDTO:
+    def get(db: Session, payment_id: int, user_account_id: int, current_role: UserRole) -> PaymentResponseDTO:
         payment = PaymentRepository.get_by_id(db, payment_id)
         if not payment:
             raise PaymentNotFound()
+
+        appointment = AppointmentRepository.get_by_id(db, payment.appointment_id)
+        if not appointment:
+            raise AppointmentNotFound()
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
+
         return PaymentMapper.model_to_dto(payment)
 
     @staticmethod
-    def list_by_appointment(db: Session, appointment_id: int) -> List[PaymentResponseDTO]:
+    def list_by_appointment(db: Session, appointment_id: int, user_account_id: int, current_role: UserRole) -> List[PaymentResponseDTO]:
+        appointment = AppointmentRepository.get_by_id(db, appointment_id)
+        if not appointment:
+            raise AppointmentNotFound()
+        AppointmentService.assert_access(db, appointment, user_account_id, current_role)
+
         payments = PaymentRepository.list_by_appointment(db, appointment_id)
         return [PaymentMapper.model_to_dto(p) for p in payments]

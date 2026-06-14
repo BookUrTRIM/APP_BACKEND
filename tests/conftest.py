@@ -59,6 +59,24 @@ def client(reset_db):
 
 # ── Auth helpers ──────────────────────────────────────────────────────────────
 
+def _activate_account(email: str) -> None:
+    """Active un compte directement en base, sans passer par l'email de vérification."""
+    from repositories.user_account_repository import UserAccountRepository
+
+    db = db_module.SessionLocal()
+    try:
+        account = UserAccountRepository.get_by_email(db, email)
+        UserAccountRepository.activate_user(db, account.id)
+        db.commit()
+    finally:
+        db.close()
+
+
+@pytest.fixture
+def activate_account():
+    return _activate_account
+
+
 @pytest.fixture
 def auth_headers(client):
     client.post("/auth/signup", json={
@@ -69,6 +87,7 @@ def auth_headers(client):
         "last_name": "Dupont",
         "phone": "+33 6 12 34 56 78",
     })
+    _activate_account("client@bookurtrim.fr")
     resp = client.post("/auth/login", json={
         "email": "client@bookurtrim.fr",
         "password": "motdepasse123",
@@ -86,6 +105,7 @@ def provider_auth_headers(client):
         "last_name": "Martin",
         "phone": "+33 6 98 76 54 32",
     })
+    _activate_account("provider@bookurtrim.fr")
     resp = client.post("/auth/login", json={
         "email": "provider@bookurtrim.fr",
         "password": "motdepasse123",
