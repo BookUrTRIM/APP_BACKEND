@@ -11,6 +11,7 @@ uvicorn[standard]~=0.32      # serveur ASGI (inclut websockets, httptools)
 
 # ── Base de données ───────────────────────────
 SQLAlchemy~=2.0
+alembic~=1.18                # migrations de schéma
 
 
 # ── Validation & sérialisation ────────────────

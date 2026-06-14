@@ -1,0 +1,58 @@
+Generic single-database configuration.
+
+# Migrations de base de données — BookUrTrim
+
+## Configuration
+
+- `target_metadata` est construit automatiquement : `env.py` importe `shared.db.Base`
+  puis charge dynamiquement tous les modules de `src/daos/` (via `pkgutil`), ce qui
+  enregistre toutes les tables dans `Base.metadata`.
+- L'URL de connexion (`sqlalchemy.url`) n'est PAS définie dans `alembic.ini`. Elle est
+  calculée dynamiquement dans `env.py` à partir de `DATABASE_URL` (`.env` / variable
+  d'environnement). Pour SQLite avec un chemin relatif, le chemin est résolu par
+  rapport à `src/` afin de pointer vers la même base que l'application.
+
+## Workflow courant
+
+1. Modifier un modèle SQLAlchemy dans `src/daos/`.
+2. Générer la migration :
+   ```
+   alembic revision --autogenerate -m "description du changement"
+   ```
+3. Relire le fichier généré dans `alembic/versions/` (autogenerate n'est pas
+   parfait : vérifier les renommages, valeurs par défaut, etc.).
+4. Appliquer la migration sur sa DB locale :
+   ```
+   alembic upgrade head
+   ```
+5. Vérifier qu'il n'y a pas de décalage modèle / DB :
+   ```
+   alembic check
+   ```
+
+## Mise en place d'une nouvelle base
+
+- **DB déjà existante** (créée auparavant via `init_db()` / `Base.metadata.create_all`,
+  schéma déjà à jour avec la baseline) :
+  ```
+  alembic stamp head
+  ```
+  Cela enregistre la révision courante sans rejouer les `CREATE TABLE` (table
+  `alembic_version` créée avec le numéro de révision).
+
+- **DB vide** (nouveau dev, CI, environnement de prod from scratch) :
+  ```
+  alembic upgrade head
+  ```
+  Alembic part de zéro et rejoue toutes les migrations, en commençant par la
+  baseline (`a40b809a6a9e_baseline_schema.py`), ce qui crée toutes les tables.
+  `init_db()` n'est plus nécessaire dans ce cas.
+
+## Notes
+
+- En production (PostgreSQL), `alembic upgrade head` doit être lancé après le
+  déploiement du code pour mettre à jour le schéma.
+- `compare_type=True` / `compare_server_default=True` sont activés pour qu'autogenerate
+  détecte aussi les changements de type de colonne et de valeur par défaut.
+- `render_as_batch=True` est activé sur SQLite, car ce dialecte ne supporte pas
+  `ALTER COLUMN` / `DROP COLUMN` directement (Alembic recrée la table en coulisses).
