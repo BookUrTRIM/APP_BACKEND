@@ -15,5 +15,6 @@ class ProviderResponseDTO(BaseModel):
     business_name: Optional[str] = None
     address: Optional[str] = None
     stripe_account_id: Optional[str] = None
+    is_single_tenant: bool = False
     created_at: datetime
     updated_at: datetime

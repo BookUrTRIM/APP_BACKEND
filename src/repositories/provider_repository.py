@@ -41,6 +41,8 @@ class ProviderRepository:
             dao.business_name = dto.business_name
         if dto.address is not None:
             dao.address = dto.address
+        if dto.is_single_tenant is not None:
+            dao.is_single_tenant = dto.is_single_tenant
 
         db.flush()
         db.refresh(dao)
