@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────
+#  BookUrTrim – dépendances Python
+#  Installer avec : pip install -r requirements.txt
+# ─────────────────────────────────────────────
+
+
+# ── Framework web ─────────────────────────────
+fastapi~=0.115               # framework ASGI
+uvicorn[standard]~=0.32      # serveur ASGI (inclut websockets, httptools)
+
+
+# ── Base de données ───────────────────────────
+SQLAlchemy~=2.0
+alembic~=1.18                # migrations de schéma
+
+
+# ── Validation & sérialisation ────────────────
+pydantic[email]~=2.10        # [email] active EmailStr
+
+
+# ── Authentification ──────────────────────────
+bcrypt~=4.2                  # hachage des mots de passe
+PyJWT~=2.9                   # génération / validation des tokens JWT
+
+
+# ── Paiement ──────────────────────────────────
+stripe~=11.0                 # vérification des webhooks Stripe
+
+
+# ── Scheduler ─────────────────────────────────────────────────────────────────
+APScheduler~=3.10            # jobs en arrière-plan (expiration des RDV PENDING)
+
+
+# ── Configuration ─────────────────────────────
+python-dotenv~=1.0           # chargement du fichier .env
+
+
+# ── Tests ─────────────────────────────────────
+pytest~=8.3
+httpx~=0.28                  # requis par FastAPI TestClient
+
+psycopg2-binary~=2.9
+bcrypt~=4.2.1

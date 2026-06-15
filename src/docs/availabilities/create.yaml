@@ -1,0 +1,36 @@
+tags: [availabilities]
+summary: Créer un créneau de disponibilité
+description: |
+  Crée un créneau de disponibilité pour le prestataire connecté.
+  La contrainte d'exclusion empêche les créneaux qui se chevauchent.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/AvailabilityCreateDTO'
+responses:
+  201:
+    description: Créneau créé
+    schema:
+      $ref: '#/definitions/AvailabilityResponse'
+  400:
+    description: Données invalides (ex. end_time ≤ start_time)
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  409:
+    description: Chevauchement avec un créneau existant
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

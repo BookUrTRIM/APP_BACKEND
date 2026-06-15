@@ -1,0 +1,39 @@
+tags: [payments]
+summary: Webhook Stripe
+description: |
+  Endpoint réservé à Stripe pour les notifications d'événements.
+  Aucune authentification JWT — la requête est validée via la signature HMAC
+  dans l'en-tête `Stripe-Signature` et le secret `STRIPE_WEBHOOK_SECRET`.
+
+  Événements traités :
+  - `payment_intent.succeeded` → passe le paiement en `validated`
+  - `payment_intent.payment_failed` → passe le paiement en `failed`
+  - `charge.refunded` → passe le paiement en `refunded`
+produces: [application/json]
+parameters:
+  - in: header
+    name: Stripe-Signature
+    type: string
+    required: true
+    description: Signature HMAC générée par Stripe
+  - in: body
+    name: body
+    required: true
+    description: Payload JSON brut de l'événement Stripe
+responses:
+  200:
+    description: Événement reçu et traité
+    schema:
+      type: object
+      properties:
+        received:
+          type: boolean
+          example: true
+  400:
+    description: Signature invalide ou payload malformé
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  500:
+    description: STRIPE_WEBHOOK_SECRET non configuré
+    schema:
+      $ref: '#/definitions/ErrorResponse'

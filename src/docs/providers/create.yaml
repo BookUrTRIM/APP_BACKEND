@@ -1,0 +1,36 @@
+tags: [providers]
+summary: Créer un profil prestataire
+description: |
+  Crée le profil prestataire associé au compte connecté.
+  Un seul profil prestataire est autorisé par compte.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ProviderCreateDTO'
+responses:
+  201:
+    description: Profil prestataire créé
+    schema:
+      $ref: '#/definitions/ProviderResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  409:
+    description: Un profil prestataire existe déjà pour ce compte
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

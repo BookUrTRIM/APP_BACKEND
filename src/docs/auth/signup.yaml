@@ -1,0 +1,30 @@
+tags: [auth]
+summary: Créer un compte
+description: |
+  Crée un nouveau compte utilisateur (client ou prestataire).
+  Retourne le profil du compte créé sans token — un appel à /auth/login est requis ensuite.
+consumes: [application/json]
+produces: [application/json]
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/SignupDTO'
+responses:
+  201:
+    description: Compte créé avec succès
+    schema:
+      $ref: '#/definitions/UserAccountResponse'
+  400:
+    description: Données invalides (email malformé, mot de passe trop court…)
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  409:
+    description: Un compte avec cet email existe déjà
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

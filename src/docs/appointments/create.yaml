@@ -1,0 +1,40 @@
+tags: [appointments]
+summary: Réserver un rendez-vous
+description: |
+  Crée un nouveau rendez-vous pour le client connecté.
+  Le statut initial est `pending` jusqu'à confirmation du prestataire.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/AppointmentCreateDTO'
+responses:
+  201:
+    description: Rendez-vous créé
+    schema:
+      $ref: '#/definitions/AppointmentResponse'
+  400:
+    description: Données invalides (ex. end_at ≤ start_at)
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Profil client ou prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  409:
+    description: Créneau non disponible
+    schema:
+      $ref: '#/definitions/ErrorConflictResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

@@ -1,0 +1,33 @@
+tags: [availabilities]
+summary: Supprimer un créneau de disponibilité
+description: |
+  Supprime un créneau de disponibilité.
+  Seul le prestataire propriétaire peut supprimer son créneau.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: availability_id
+    type: integer
+    required: true
+    description: Identifiant du créneau
+responses:
+  204:
+    description: Créneau supprimé
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Créneau introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

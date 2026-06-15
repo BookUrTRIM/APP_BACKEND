@@ -1,0 +1,45 @@
+tags: [providers]
+summary: Mettre à jour un profil prestataire
+description: |
+  Met à jour les informations du profil prestataire.
+  Seul le propriétaire du profil peut effectuer cette action.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: provider_id
+    type: integer
+    required: true
+    description: Identifiant du prestataire
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ProviderUpdateDTO'
+responses:
+  200:
+    description: Profil mis à jour
+    schema:
+      $ref: '#/definitions/ProviderResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

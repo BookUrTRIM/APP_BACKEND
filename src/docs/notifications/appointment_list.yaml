@@ -1,0 +1,29 @@
+tags: [notifications]
+summary: Notifications d'un rendez-vous
+description: |
+  Retourne toutes les notifications associées à un rendez-vous,
+  triées par date d'envoi décroissante.
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  200:
+    description: Liste des notifications
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/NotificationResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

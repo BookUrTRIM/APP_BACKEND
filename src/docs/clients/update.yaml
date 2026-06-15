@@ -1,0 +1,45 @@
+tags: [clients]
+summary: Mettre à jour un profil client
+description: |
+  Met à jour les informations du profil client.
+  Seul le propriétaire du profil peut effectuer cette action.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: client_id
+    type: integer
+    required: true
+    description: Identifiant du client
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ClientUpdateDTO'
+responses:
+  200:
+    description: Profil mis à jour
+    schema:
+      $ref: '#/definitions/ClientResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  403:
+    description: Accès refusé
+    schema:
+      $ref: '#/definitions/ErrorForbiddenResponse'
+  404:
+    description: Client introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

@@ -1,0 +1,23 @@
+tags: [appointments]
+summary: Récupérer l'avis d'un rendez-vous
+description: Retourne l'avis associé à un rendez-vous.
+produces: [application/json]
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  200:
+    description: Avis du rendez-vous
+    schema:
+      $ref: '#/definitions/ReviewResponse'
+  404:
+    description: Avis ou rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

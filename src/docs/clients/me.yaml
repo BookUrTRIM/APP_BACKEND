@@ -1,0 +1,23 @@
+tags: [clients]
+summary: Mon profil client
+description: Retourne le profil client du compte connecté.
+produces: [application/json]
+security:
+  - BearerAuth: []
+responses:
+  200:
+    description: Profil client
+    schema:
+      $ref: '#/definitions/ClientResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Profil client introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

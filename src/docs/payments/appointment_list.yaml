@@ -1,0 +1,31 @@
+tags: [payments]
+summary: Paiements d'un rendez-vous
+description: Retourne tous les paiements associés à un rendez-vous (acompte + solde).
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: appointment_id
+    type: integer
+    required: true
+    description: Identifiant du rendez-vous
+responses:
+  200:
+    description: Liste des paiements
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/PaymentResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Rendez-vous introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

@@ -1,0 +1,36 @@
+tags: [services]
+summary: Créer une prestation
+description: |
+  Crée une nouvelle prestation pour le prestataire connecté.
+  Seul un prestataire avec un profil existant peut créer une prestation.
+consumes: [application/json]
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: '#/definitions/ServiceCreateDTO'
+responses:
+  201:
+    description: Prestation créée
+    schema:
+      $ref: '#/definitions/ServiceResponse'
+  400:
+    description: Données invalides
+    schema:
+      $ref: '#/definitions/ErrorBadRequestResponse'
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Profil prestataire introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Erreur interne du serveur
+    schema:
+      $ref: '#/definitions/ErrorResponse'

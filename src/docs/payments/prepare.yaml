@@ -1,0 +1,41 @@
+tags: [payments]
+summary: Créer un PaymentIntent Stripe
+description: |
+  Crée un PaymentIntent Stripe pour le paiement identifié et retourne le `client_secret`
+  à utiliser côté frontend avec Stripe Elements ou Stripe.js.
+
+  Si un PaymentIntent existe déjà pour ce paiement, il est récupéré depuis Stripe
+  et son `client_secret` est retourné (idempotent).
+produces: [application/json]
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: payment_id
+    type: integer
+    required: true
+    description: Identifiant du paiement
+responses:
+  200:
+    description: PaymentIntent créé ou récupéré
+    schema:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+          example: 42
+        client_secret:
+          type: string
+          example: pi_3ABC...xyz_secret_...
+  401:
+    description: Non authentifié
+    schema:
+      $ref: '#/definitions/ErrorUnauthorizedResponse'
+  404:
+    description: Paiement introuvable
+    schema:
+      $ref: '#/definitions/ErrorNotFoundResponse'
+  500:
+    description: Échec de l'appel Stripe
+    schema:
+      $ref: '#/definitions/ErrorResponse'
