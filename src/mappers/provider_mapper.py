@@ -16,6 +16,7 @@ class ProviderMapper:
             address=dao.address,
             google_calendar_token_enc=dao.google_calendar_token_enc,
             stripe_account_id=dao.stripe_account_id,
+            is_single_tenant=dao.is_single_tenant,
             created_at=dao.created_at,
             updated_at=dao.updated_at,
         )
@@ -31,6 +32,7 @@ class ProviderMapper:
             business_name=model.business_name,
             address=model.address,
             stripe_account_id=model.stripe_account_id,
+            is_single_tenant=model.is_single_tenant,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )

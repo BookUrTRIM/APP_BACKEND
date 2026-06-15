@@ -9,3 +9,4 @@ class ProviderUpdateDTO(BaseModel):
     phone: Optional[str] = Field(None, max_length=20)
     business_name: Optional[str] = Field(None, max_length=150)
     address: Optional[str] = Field(None, max_length=255)
+    is_single_tenant: Optional[bool] = None

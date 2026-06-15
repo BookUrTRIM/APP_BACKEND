@@ -17,5 +17,7 @@ class ProviderModel:
     google_calendar_token_enc: Optional[str]
     stripe_account_id: Optional[str]
 
+    is_single_tenant: bool
+
     created_at: datetime
     updated_at: datetime
